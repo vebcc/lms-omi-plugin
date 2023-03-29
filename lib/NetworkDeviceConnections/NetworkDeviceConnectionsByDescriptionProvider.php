@@ -19,7 +19,7 @@ class NetworkDeviceConnectionsByDescriptionProvider implements NetworkDeviceConn
     {
         $onuDeviceConnections = [];
 
-        //$onuDeviceConnections = $this->includeDevices($onuDeviceConnections);
+        $onuDeviceConnections = $this->includeDevices($onuDeviceConnections);
         $onuDeviceConnections = $this->includeNetworkDevices($onuDeviceConnections);
 
         return $onuDeviceConnections;

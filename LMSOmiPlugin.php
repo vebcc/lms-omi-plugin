@@ -2,11 +2,11 @@
 
 
 /**
- * LMSOltManagerIntegrationPlugin
+ * LMSOmiPlugin
  *
  * @author Krzysztof Masłowski <krzysztof@maslowski.it>
  *
- * PHP 7.1
+ * PHP 7.3
  */
 
 class LMSOmiPlugin extends LMSPlugin
