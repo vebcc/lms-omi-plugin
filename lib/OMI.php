@@ -24,7 +24,7 @@ class OMI
             default:
                 $result = $this->getDefaultResult();
                 break;
-            case 'networkdeviceconnections':
+            case 'getNetworkDeviceConnections':
                 $result = $this->getNetworkDeviceConnections($params);
                 break;
         }
