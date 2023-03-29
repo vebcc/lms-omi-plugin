@@ -1,0 +1,1 @@
+//TODO: W DescriptionToAddressConverter return [exception => 'message' code => 'code'] w przypadku jakiegos bledu (pomoze w dodaniu potem w lmsie listy z bledami w opisach)
