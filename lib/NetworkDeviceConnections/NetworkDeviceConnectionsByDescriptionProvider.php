@@ -1,24 +1,26 @@
 <?php
 
+require_once 'DataProvider/NetDevProvider.php';
+require_once 'Converter/DescriptionToAddressConverter.php';
+
 class NetworkDeviceConnectionsByDescriptionProvider implements NetworkDeviceConnectionsProviderInterface
 {
-    private $db;
     private $lms;
+
+    private $descriptionToAddressConverter;
 
     public function __construct()
     {
-        $this->db = LMSDB::getInstance();
         $this->lms = LMS::getInstance();
-
+        $this->descriptionToAddressConverter = new DescriptionToAddressConverter();
     }
 
     public function getNetworkDeviceConnections(): array
     {
         $onuDeviceConnections = [];
 
-        $onuDeviceConnections = $this->includeDevices($onuDeviceConnections);
-
-        //TODO: netDev
+        //$onuDeviceConnections = $this->includeDevices($onuDeviceConnections);
+        $onuDeviceConnections = $this->includeNetworkDevices($onuDeviceConnections);
 
         return $onuDeviceConnections;
     }
@@ -37,7 +39,7 @@ class NetworkDeviceConnectionsByDescriptionProvider implements NetworkDeviceConn
         );
 
         foreach ($nodeCollection as $node) {
-            $address = $this->getAddressFromDescription($node['info']);
+            $address = $this->descriptionToAddressConverter->convert($node['info']);
             if(!$address){
                 continue;
             }
@@ -49,6 +51,7 @@ class NetworkDeviceConnectionsByDescriptionProvider implements NetworkDeviceConn
             }
 
             $device = [
+                'lmsId' => (int)$node['id'],
                 'ownerId' => (int)$node['ownerid'],
                 'netDev' => (int)$node['netdev'],
                 'netNode' => (int)$node['netnodeid'],
@@ -63,7 +66,6 @@ class NetworkDeviceConnectionsByDescriptionProvider implements NetworkDeviceConn
                     'ulic' => (int)$node['ulic'],
                     'location_house' => $node['location_house']
                 ],
-
             ];
 
             array_push($onuDeviceConnection['devices'], $device);
@@ -74,9 +76,62 @@ class NetworkDeviceConnectionsByDescriptionProvider implements NetworkDeviceConn
         return $onuDeviceConnections;
     }
 
-    private function getNetworkDevice()
+    private function includeNetworkDevices(array $onuDeviceConnections): array
     {
+        $netDevProvider = new NetDevProvider();
 
+        //$netDevCollection = $this->lms->GetNetDevList();
+        $netDevCollection = $netDevProvider->getNetDevCollection();
+
+        unset(
+            $netDevCollection['total'],
+            $netDevCollection['order'],
+            $netDevCollection['direction'],
+        );
+
+        foreach ($netDevCollection as $netDev) {
+            $address = $this->descriptionToAddressConverter->convert($netDev['description']);
+            if(!$address){
+                continue;
+            }
+
+            if(key_exists($address['stringAddress'], $onuDeviceConnections)){
+                $onuDeviceConnection = $onuDeviceConnections[$address['stringAddress']];
+            }else{
+                $onuDeviceConnection = $this->createNewOnuDeviceConnections($address);
+            }
+
+            $locationAddress =  $this->lms->GetCustomerAddress((int)$netDev['ownerid'], DEFAULT_LOCATION_ADDRESS);
+            if(!$locationAddress){
+                $locationAddress =  $this->lms->GetCustomerAddress((int)$netDev['ownerid'], BILLING_ADDRESS);
+            }
+
+            $networkDevice = [
+                'lmsId' => $netDev['id'],
+                'ownerId' => $netDev['ownerid'],
+                'netNode' => $netDev['netnodeid'],
+                'producer' => $netDev['producer'],
+                'model' => $netDev['model'],
+                'serialNumber' => $netDev['serialnumber'],
+                'address' => [
+                    'longitude' => $netDev['longitude'],
+                    'latitude' => $netDev['latitude'],
+                    'cityIdent' => $netDev['city_ident'],
+                    'stateIdent' => $netDev['state_ident'],
+                    'streetIdent' => $netDev['street_ident'],
+                    'terc' => $netDev['terc'],
+                    'simc' => $netDev['simc'],
+                    'ulic' => $netDev['ulic'],
+                    'location_house' => $netDev['location_house']
+                ],
+            ];
+
+            array_push($onuDeviceConnection['networkDevices'], $networkDevice);
+
+            $onuDeviceConnections[$address['stringAddress']] = $onuDeviceConnection;
+        }
+
+        return $onuDeviceConnections;
     }
 
     private function createNewOnuDeviceConnections(array $address): array
@@ -88,110 +143,6 @@ class NetworkDeviceConnectionsByDescriptionProvider implements NetworkDeviceConn
         ];
     }
 
-    private function getAddressFromDescription(?string $description): ?array
-    {
-        //Brak notatki
-        if($description == "" || !$description){
-            return null;
-        }
-
-        $result = preg_split('/\r\n|\r|\n/', $description);
-
-        $addressToParse = $result[0];
-
-        //Znak pominięcia obiektu lub pusta linia (która świadczy o tym samym)
-        if($addressToParse == "-" || $addressToParse == ""){
-            return null;
-        }
-
-        $spp = explode('_', $addressToParse);
-
-        //Brak informacji o olcie w adresie onu (np. "TU_")
-        if(!key_exists(1, $spp)){
-            return null;
-        }
-
-        $oltShortName = $spp[0];
-
-        $spp2 = explode(':', $spp[1]);
-
-        //Błędny adres onu w notatce (brak dwukropka).
-        if(!key_exists(1, $spp2)){
-            return null;
-        }
-
-        //Błędny adres onu w notatce (prawdopodobnie literowka i wpisany znak zamiast liczby).
-        if(!is_numeric($spp2[1])){
-            return null;
-        }
 
 
-        $onuTagId = (int)$spp2[1];
-
-        //Brak id onu w adresie. (Niepełny adres onu w notatce)
-        if($onuTagId == ""){
-            return null;
-        }
-
-        $partOfAddress = $this->getSecondPartOfAddress($spp2[0]);
-
-        if(!$partOfAddress){
-            //Błedny adres onu (Np. literówka i zamiast nr olta/karty/portu to jakaś litera) lub niewspierany wariant
-            return null;
-        }
-
-        return [
-          'oltTagId' => $partOfAddress['oltTagId'],
-          'cardTagId' => $partOfAddress['cardTagId'],
-          'portTagId' => $partOfAddress['portTagId'],
-          'onuTagId' => $onuTagId,
-          'oltShortName' => $oltShortName,
-          'stringAddress' =>
-              $oltShortName .
-              '_' .
-              $partOfAddress['oltTagId'] .
-              '/' .
-              $partOfAddress['cardTagId'] .
-              '/' .
-              $partOfAddress['portTagId'] .
-              ':' .
-              $onuTagId,
-        ];
-    }
-
-    private function getSecondPartOfAddress(string $addressToPrepare): ?array
-    {
-        $spp = explode('/', $addressToPrepare);
-
-        if(!key_exists(1, $spp)){
-            if(!is_numeric($addressToPrepare)){
-                //Błedny adres onu (Np. literówka i zamiast nr portu to jakaś litera)
-                return null;
-            }
-
-            //Dla takich oltow jak DASANY które nie maja ani info o stacku ani portów
-            // Wariant 1:1
-            return [
-                'oltTagId' => 0,
-                'cardTagId' => 0,
-                'portTagId' => (int)$addressToPrepare,
-            ];
-        }
-
-        if(!key_exists(2, $spp)){
-            //Wariant w stylu 1/1:1. Obecnie nie wspierany
-            return null;
-        }
-
-        if(!is_numeric($spp[0]) || !is_numeric($spp[1]) || !is_numeric($spp[2])){
-            //Błedny adres onu (Np. literówka i zamiast nr olta/karty/portu to jakaś litera)
-            return null;
-        }
-
-        return [
-            'oltTagId' => (int)$spp[0],
-            'cardTagId' => (int)$spp[1],
-            'portTagId' => (int)$spp[2],
-        ];
-    }
 }
