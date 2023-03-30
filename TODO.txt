@@ -1,1 +1,5 @@
-//TODO: W DescriptionToAddressConverter return [exception => 'message' code => 'code'] w przypadku jakiegos bledu (pomoze w dodaniu potem w lmsie listy z bledami w opisach)
+//TODO: need to add some settings to db when want to use plugin
+//TODO: fix location address in network devices
+//TODO: add button in node that allows to go to device in oltmanager
+//TODO: add button in netdev that allows to go to device in oltmanager
+//TODO: add button in customer that allows to go to device in oltmanager
