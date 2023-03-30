@@ -4,9 +4,30 @@ Wtyczka do systemu LMS realizująca integrację do systemu OltManager.
 Ze względu na różne podejście ISP do zapisywania adresów w lmsie,
 konieczne było stworzenie wtyczki, która pozwoli wyciągać niezbędne dane z systemu.
 "API" lmsa dodatkowo nie pozwala na pobranie wszystkich danych. Na przykład w przypadku
-NetDev nie ma możliwości pobrania adresu jako TERYT
+NetDev nie ma możliwości pobrania adresu jako TERYT.
+
+Wtyczka dodatkowo zapewnia możliwość szybkiego przejścia do systemu OlManager
+bezpośrednio z Node i NetDev przez dodanie przycisku, który kieruje bezpśrednio
+na zsynchronizowane Onu.
+
+## Moduły
+
+- Urządzenia z błędami - wyświetla listę z listą urządzeń, które mają
+niepoprawnie skonfigurowane adresy Onu, przez co nie zostaną zsynchronizowane
+z systemem OltManager.
 
 
+Wykona funkcję GetNetDevList i poda do niej parametr order 
+
+## Ustawienia
+Do poprawnej pracy wtyczki niezbędne jest dodanie ustawień do systemu
+
+Pełny adres do aplikacji OltManager
+>omi.olt_manager_url
+
+Typ dostawcy adresów onu.
+Domyślnie i obecnie jedyny wspierany: "description"
+>omi.provider_type
 
 ## API
 Dodatkowo napisana została prosta klasa umożliwiająca pobieranie wszystkich danych,
@@ -20,5 +41,3 @@ Dodatkowo przez utworzenie Refleksji pobierane są wymagane zmienne z funkcji,
 przez co możliwe jest podanie dodatkowych parametrów. Np. można dodać &order=asc.
 
 >/?m=omidatagetter&module=api&lmsDirect=1&type=GetNetDevList&order=asc
-
-Wykona funkcję GetNetDevList i poda do niej parametr order 

@@ -46,16 +46,22 @@ class OmiInitHandler
             'omi' => array(
                 'name' => 'OltManager',
                 'img' => '/producer.gif',
-                'link' =>'?m=gpondasanoltlist',
+                'link' => ConfigHelper::getConfig('omi.olt_manager_url', '?m=omideviceerrorlist'),
                 'tip' => trans('OltManager integration'),
                 'accesskey' =>'k',
                 'prio' => 40,
                 'submenu' => array(
-                    'gpondasanoltlist' => array(
+                    'omioltmanagerurl' => array(
+                        'name' => trans('OltManager'),
+                        'link' => ConfigHelper::getConfig('omi.olt_manager_url', '?m=omideviceerrorlist'),
+                        'tip' => trans('OltManager'),
+                        'prio' => 10,
+                    ),
+                    'omideviceerrorlist' => array(
                         'name' => trans('Device with error list'),
                         'link' => '?m=omideviceerrorlist',
                         'tip' => trans('Device with error list'),
-                        'prio' => 10,
+                        'prio' => 20,
                     ),
                 ),
             ),

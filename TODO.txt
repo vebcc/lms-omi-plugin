@@ -3,3 +3,4 @@
 //TODO: add button in node that allows to go to device in oltmanager
 //TODO: add button in netdev that allows to go to device in oltmanager
 //TODO: add button in customer that allows to go to device in oltmanager
+//TODO: add permissions (direct api is now very danger) - not ready to prod
