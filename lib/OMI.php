@@ -27,6 +27,9 @@ class OMI
             case 'getNetworkDeviceConnections':
                 $result = $this->getNetworkDeviceConnections($params);
                 break;
+            case 'getNetworkDeviceConnectionsWithError':
+                $result = $this->getNetworkDeviceConnectionsWithError($params);
+                break;
         }
 
         return $result;
@@ -60,6 +63,24 @@ class OMI
         }
 
         return $provider->getNetworkDeviceConnections();
+    }
+
+    private function getNetworkDeviceConnectionsWithError(array $params): array
+    {
+        $version = $params['version'] ?? 'description'; //mac and other when isp need.
+
+        $provider = null;
+
+        switch ($version){
+            case 'description':
+                $provider = new NetworkDeviceConnectionsByDescriptionProvider();
+        }
+
+        if (!$provider){
+            return ['exception' => 'This provider version is not available', 'code' => 11];
+        }
+
+        return $provider->getNetworkDeviceConnectionsWithError();
     }
 
 

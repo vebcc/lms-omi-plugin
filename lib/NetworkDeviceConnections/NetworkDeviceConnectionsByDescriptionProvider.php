@@ -25,7 +25,17 @@ class NetworkDeviceConnectionsByDescriptionProvider implements NetworkDeviceConn
         return $onuDeviceConnections;
     }
 
-    private function includeDevices(array $onuDeviceConnections): array
+    public function getNetworkDeviceConnectionsWithError(): array
+    {
+        $onuDeviceConnections = [];
+
+        $onuDeviceConnections = $this->includeDevices($onuDeviceConnections, true);
+        $onuDeviceConnections = $this->includeNetworkDevices($onuDeviceConnections, true);
+
+        return $onuDeviceConnections;
+    }
+
+    private function includeDevices(array $onuDeviceConnections, bool $onlyError = false): array
     {
         $nodeCollection = $this->lms->GetNodeList();
 
@@ -39,16 +49,21 @@ class NetworkDeviceConnectionsByDescriptionProvider implements NetworkDeviceConn
         );
 
         foreach ($nodeCollection as $node) {
-            $address = $this->descriptionToAddressConverter->convert($node['info']);
-            if(!$address){
+            $address = $this->descriptionToAddressConverter->convert($node['info'], $onlyError);
+            if((!$address) || (!$onlyError && key_exists('error', $address)) || ($onlyError && !key_exists('error', $address))){
                 continue;
             }
 
-            if(key_exists($address['stringAddress'], $onuDeviceConnections)){
-                $onuDeviceConnection = $onuDeviceConnections[$address['stringAddress']];
+            if(!$onlyError){
+                if(key_exists($address['stringAddress'], $onuDeviceConnections)){
+                    $onuDeviceConnection = $onuDeviceConnections[$address['stringAddress']];
+                }else{
+                    $onuDeviceConnection = $this->createNewOnuDeviceConnections($address);
+                }
             }else{
                 $onuDeviceConnection = $this->createNewOnuDeviceConnections($address);
             }
+
 
             $device = [
                 'lmsId' => (int)$node['id'],
@@ -68,15 +83,23 @@ class NetworkDeviceConnectionsByDescriptionProvider implements NetworkDeviceConn
                 ],
             ];
 
+            if($onlyError){
+                $device['error'] = $address;
+            }
+
             array_push($onuDeviceConnection['devices'], $device);
 
-            $onuDeviceConnections[$address['stringAddress']] = $onuDeviceConnection;
+            if($onlyError){
+                array_push($onuDeviceConnections, $onuDeviceConnection);
+            }else{
+                $onuDeviceConnections[$address['stringAddress']] = $onuDeviceConnection;
+            }
         }
 
         return $onuDeviceConnections;
     }
 
-    private function includeNetworkDevices(array $onuDeviceConnections): array
+    private function includeNetworkDevices(array $onuDeviceConnections, bool $onlyError = false): array
     {
         $netDevProvider = new NetDevProvider();
 
@@ -90,16 +113,22 @@ class NetworkDeviceConnectionsByDescriptionProvider implements NetworkDeviceConn
         );
 
         foreach ($netDevCollection as $netDev) {
-            $address = $this->descriptionToAddressConverter->convert($netDev['description']);
-            if(!$address){
+            $address = $this->descriptionToAddressConverter->convert($netDev['description'], $onlyError);
+            if((!$address) || (!$onlyError && key_exists('error', $address)) || ($onlyError && !key_exists('error', $address))){
                 continue;
             }
 
-            if(key_exists($address['stringAddress'], $onuDeviceConnections)){
-                $onuDeviceConnection = $onuDeviceConnections[$address['stringAddress']];
+            if(!$onlyError){
+                if(key_exists($address['stringAddress'], $onuDeviceConnections)){
+                    $onuDeviceConnection = $onuDeviceConnections[$address['stringAddress']];
+                }else{
+                    $onuDeviceConnection = $this->createNewOnuDeviceConnections($address);
+                }
             }else{
                 $onuDeviceConnection = $this->createNewOnuDeviceConnections($address);
             }
+
+
 
             $locationAddress =  $this->lms->GetCustomerAddress((int)$netDev['ownerid'], DEFAULT_LOCATION_ADDRESS);
             if(!$locationAddress){
@@ -126,9 +155,18 @@ class NetworkDeviceConnectionsByDescriptionProvider implements NetworkDeviceConn
                 ],
             ];
 
+            if($onlyError){
+                $networkDevice['error'] = $address;
+            }
+
             array_push($onuDeviceConnection['networkDevices'], $networkDevice);
 
-            $onuDeviceConnections[$address['stringAddress']] = $onuDeviceConnection;
+
+            if($onlyError){
+                array_push($onuDeviceConnections, $onuDeviceConnection);
+            }else{
+                $onuDeviceConnections[$address['stringAddress']] = $onuDeviceConnection;
+            }
         }
 
         return $onuDeviceConnections;
