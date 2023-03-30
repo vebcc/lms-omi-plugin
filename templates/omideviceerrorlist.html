@@ -1,0 +1,99 @@
+{extends file="layout.html"}
+{block name="module_content"}
+<!--// $Id$ //-->
+{$xajax}
+<h1>{$layout.pagetitle}</h1>
+<table class="lmsbox">
+    <thead>
+    <tr {tip text="Click on column name to change sorting order" }>
+        <td class="fleftu" width="97%">
+            <img src="img/producer.gif" alt="">
+            <b>{trans("Name:")}</b>
+        </td>
+        <td class="fbt" width="5%" align="right" valign="top">
+            {trans("Object name:")}
+        </td>
+        <td class="fbt" width="1%" align="right" valign="top">
+            {trans("Object:")}
+        </td>
+        <td class="fbt" width="1%" align="right" valign="top">
+            ID:
+        </td>
+        <td class="frightu" width="1%" align="right" nowrap>
+            <b>{trans("Total:")} {count($errorDevices)|default:"0"}</b>
+        </td>
+    </tr>
+    </thead>
+    <tbody>
+    {if $listdata.total != 0}
+    <tr class="dark">
+        <td class="fall" colspan="4" width="100%">
+            {include file="scroller.html" loop=$errorDevices}
+        </td>
+    </tr>
+    {/if}
+    {cycle values="light,lucid" print=false}
+    {section name=devicelist loop=$errorDevices start=$start max=$pagelimit}
+    <tr class="{cycle}" onmouseover="addClass(this, 'highlight')" onmouseout="removeClass(this, 'highlight')">
+        <td width="97%" class="fleft"
+            onclick="return self.location.href='{$errorDevices[devicelist].link.show}';"
+            valign="TOP">
+            <img src="img/wins.gif" alt="">
+            <a name="{$errorDevices[netdevlist].id}">
+                <b>{trans('problem:')} {trans({$errorDevices[devicelist].error})}</b>
+            </a>
+            <br>
+            <img src="img/producer.gif" alt="">
+            {trans('invalid address:')} {$errorDevices[devicelist].address}
+        </td>
+        <td width="5%"
+            onclick="return self.location.href='{$errorDevices[devicelist].link.show}';"
+            align="right" valign="top">
+            <b>{$errorDevices[devicelist].name}</b>
+        </td>
+        <td width="1%"
+            onclick="return self.location.href='{$errorDevices[devicelist].link.show}';"
+            align="right" valign="top">
+            {trans($errorDevices[devicelist].type)}
+        </td>
+        <td width="1%"
+            onclick="return self.location.href='{$errorDevices[devicelist].link.show}';"
+            align="right" valign="top">
+            ({$errorDevices[devicelist].lmsId|string_format:"%04d"})
+        </td>
+        <td width="1%" class="fright" align="right">
+            <nobr>
+                <a href="{$errorDevices[devicelist].link.edit}">
+                    <img src="img/edit.gif" alt="[ {trans(" Edit")} ]" title="[ {trans("Edit")} ]">
+                </a>
+                <a href="{$errorDevices[devicelist].link.show}">
+                    <img src="img/info.gif" alt="[ {trans(" Info")} ]" title="[ {trans("Info")} ]">
+                </a>
+            </nobr>
+        </td>
+    </tr>
+    {sectionelse}
+    <tr>
+        <td colspan="4" class="fall" align="center">
+            <p>&nbsp;</p>
+            <p><b>{trans("There are no devices in your database.")}</b></p>
+            <p>&nbsp;</p>
+        </td>
+    </tr>
+    {/section}
+    {if $listdata.total != 0}
+    <tr class="dark">
+        <td class="fall" colspan="4" width="100%">
+            {include file="scroller.html" loop=$errorDevices}
+        </td>
+    </tr>
+    {/if}
+    <tr>
+        <td width="99%" colspan="4" class="fleftu" ALIGN="right">
+            <b>{trans("Total:")} {count($errorDevices)|default:"0"}</b>
+        </td>
+        <td width="1%" colspan="1" class="frightu"></td>
+    </tr>
+    </tbody>
+</table>
+{/block}
