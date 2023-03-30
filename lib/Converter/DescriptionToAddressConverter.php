@@ -3,7 +3,7 @@
 
 class DescriptionToAddressConverter
 {
-    public function convert(?string $description): ?array
+    public function convert(?string $description, bool $errorInfoInResultWhenFailed = false): ?array
     {
         //Brak notatki
         if($description == "" || !$description){
@@ -12,7 +12,7 @@ class DescriptionToAddressConverter
 
         $result = preg_split('/\r\n|\r|\n/', $description);
 
-        $addressToParse = $result[0];
+        $addressToParse = trim($result[0]);
 
         //Znak pominięcia obiektu lub pusta linia (która świadczy o tym samym)
         if($addressToParse == "-" || $addressToParse == ""){
@@ -23,7 +23,7 @@ class DescriptionToAddressConverter
 
         //Brak informacji o olcie w adresie onu (np. "TU_")
         if(!key_exists(1, $spp)){
-            return null;
+            return $this->errorResultProvider('oltShortNameMissing', $addressToParse, $errorInfoInResultWhenFailed);
         }
 
         $oltShortName = $spp[0];
@@ -32,27 +32,27 @@ class DescriptionToAddressConverter
 
         //Błędny adres onu w notatce (brak dwukropka).
         if(!key_exists(1, $spp2)){
-            return null;
+            return $this->errorResultProvider('colonMissing', $addressToParse, $errorInfoInResultWhenFailed);
         }
 
         //Błędny adres onu w notatce (prawdopodobnie literowka i wpisany znak zamiast liczby).
         if(!is_numeric($spp2[1])){
-            return null;
+            return $this->errorResultProvider('probablyCharacter', $addressToParse, $errorInfoInResultWhenFailed);
         }
 
 
-        $onuTagId = (int)$spp2[1];
+        $onuTagId = $spp2[1];
 
         //Brak id onu w adresie. (Niepełny adres onu w notatce)
         if($onuTagId == ""){
-            return null;
+            return $this->errorResultProvider('onuIdMissing', $addressToParse, $errorInfoInResultWhenFailed);
         }
 
-        $partOfAddress = $this->getSecondPartOfAddress($spp2[0]);
+        $partOfAddress = $this->getSecondPartOfAddress($spp2[0], $errorInfoInResultWhenFailed);
 
-        if(!$partOfAddress){
+        if(!$partOfAddress || key_exists('error', $partOfAddress)){
             //Błedny adres onu (Np. literówka i zamiast nr olta/karty/portu to jakaś litera) lub niewspierany wariant
-            return null;
+            return $partOfAddress;
         }
 
         return [
@@ -74,14 +74,14 @@ class DescriptionToAddressConverter
         ];
     }
 
-    private function getSecondPartOfAddress(string $addressToPrepare): ?array
+    private function getSecondPartOfAddress(string $addressToPrepare, bool $errorInfoInResultWhenFailed = false): ?array
     {
         $spp = explode('/', $addressToPrepare);
 
         if(!key_exists(1, $spp)){
             if(!is_numeric($addressToPrepare)){
                 //Błedny adres onu (Np. literówka i zamiast nr portu to jakaś litera)
-                return null;
+                return $this->errorResultProvider('colonMissing', $addressToPrepare, $errorInfoInResultWhenFailed);
             }
 
             //Dla takich oltow jak DASANY które nie maja ani info o stacku ani portów
@@ -95,12 +95,12 @@ class DescriptionToAddressConverter
 
         if(!key_exists(2, $spp)){
             //Wariant w stylu 1/1:1. Obecnie nie wspierany
-            return null;
+            return $this->errorResultProvider('invalidVariant', $addressToPrepare, $errorInfoInResultWhenFailed);
         }
 
         if(!is_numeric($spp[0]) || !is_numeric($spp[1]) || !is_numeric($spp[2])){
             //Błedny adres onu (Np. literówka i zamiast nr olta/karty/portu to jakaś litera)
-            return null;
+            return $this->errorResultProvider('colonMissing', $addressToPrepare, $errorInfoInResultWhenFailed);
         }
 
         return [
@@ -108,5 +108,23 @@ class DescriptionToAddressConverter
             'cardTagId' => (int)$spp[1],
             'portTagId' => (int)$spp[2],
         ];
+    }
+
+    private function errorResultProvider(string $errorName, string $address, bool $errorInfoInResultWhenFailed = false): ?array
+    {
+        if(!$errorInfoInResultWhenFailed){
+            return null;
+        }
+
+        switch ($errorName){
+            case 'colonMissing':
+            case 'probablyCharacter':
+            case 'onuIdMissing':
+            case 'invalidVariant':
+                return ['error' => $errorName, 'address' => $address];
+            case 'oltShortNameMissing':
+            default:
+                return null;
+        }
     }
 }
