@@ -22,7 +22,7 @@ class NetDevProvider
             $customerManager = new LMSCustomerManager($this->lms->getDb(), $this->lms->getAuth(), $this->lms->getCache(), $this->lms->getSyslog());
 
             foreach ($netDevCollection as &$netDev) {
-                $netDev['customlinks'] = array();
+                $netDev['customlinks'] = [];
                 if (!$netDev['location'] && $netDev['ownerid']) {
                     $netDev['location'] = $customerManager->getAddressForCustomerStuff($netDev['ownerid']);
                 }

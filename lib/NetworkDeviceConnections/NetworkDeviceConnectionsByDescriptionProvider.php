@@ -66,19 +66,19 @@ class NetworkDeviceConnectionsByDescriptionProvider implements NetworkDeviceConn
 
 
             $device = [
-                'lmsId' => (int)$node['id'],
-                'ownerId' => (int)$node['ownerid'],
-                'netDev' => (int)$node['netdev'],
-                'netNode' => (int)$node['netnodeid'],
+                'lmsId' => $node['id'],
+                'ownerId' => $node['ownerid'],
+                'netDev' => $node['netdev'],
+                'netNode' => $node['netnodeid'],
                 'address' => [
                     'longitude' => $node['longitude'],
                     'latitude' => $node['latitude'],
-                    'cityIdent' => (int)$node['city_ident'],
-                    'stateIdent' => (int)$node['state_ident'],
-                    'streetIdent' => (int)$node['street_ident'],
-                    'terc' => (int)$node['terc'],
-                    'simc' => (int)$node['simc'],
-                    'ulic' => (int)$node['ulic'],
+                    'cityIdent' => $node['city_ident'],
+                    'stateIdent' => $node['state_ident'],
+                    'streetIdent' => $node['street_ident'],
+                    'terc' => $node['terc'],
+                    'simc' => $node['simc'],
+                    'ulic' => $node['ulic'],
                     'location_house' => $node['location_house']
                 ],
             ];

@@ -27,7 +27,7 @@ class OmiInitHandler
      * @param array $hook_data Hook data
      * @return array Hook data
      */
-    public function modulesDirInit(array $hook_data = array())
+    public function modulesDirInit(array $hook_data = [])
     {
         $plugin_modules = PLUGINS_DIR . DIRECTORY_SEPARATOR . LMSOmiPlugin::PLUGIN_DIRECTORY_NAME . DIRECTORY_SEPARATOR . 'modules';
         array_unshift($hook_data, $plugin_modules);
@@ -40,32 +40,32 @@ class OmiInitHandler
      * @param array $hook_data Hook data
      * @return array Hook data
      */
-    public function menuInit(array $hook_data = array())
+    public function menuInit(array $hook_data = [])
     {
-        $menu_omi = array(
-            'omi' => array(
+        $menu_omi = [
+            'omi' => [
                 'name' => 'OltManager',
                 'img' => '/producer.gif',
                 'link' => ConfigHelper::getConfig('omi.olt_manager_url', '?m=omideviceerrorlist'),
                 'tip' => trans('OltManager integration'),
                 'accesskey' =>'k',
                 'prio' => 40,
-                'submenu' => array(
-                    'omioltmanagerurl' => array(
+                'submenu' => [
+                    'omioltmanagerurl' => [
                         'name' => trans('OltManager'),
                         'link' => ConfigHelper::getConfig('omi.olt_manager_url', '?m=omideviceerrorlist'),
                         'tip' => trans('OltManager'),
                         'prio' => 10,
-                    ),
-                    'omideviceerrorlist' => array(
+                    ],
+                    'omideviceerrorlist' => [
                         'name' => trans('Device with error list'),
                         'link' => '?m=omideviceerrorlist',
                         'tip' => trans('Device with error list'),
                         'prio' => 20,
-                    ),
-                ),
-            ),
-        );
+                    ],
+                ],
+            ],
+        ];
 
         $menu_keys = array_keys($hook_data);
         $i = array_search('netdevices', $menu_keys);
@@ -85,7 +85,9 @@ class OmiInitHandler
             trans('OltManager - full access'),
             '^omi.*$',
             null,
-            array('omi' => Permission::MENU_ALL)
+            [
+                'omi' => Permission::MENU_ALL
+            ]
         );
         $access->insertPermission($permission, AccessRights::FIRST_FORBIDDEN_PERMISSION);
 
@@ -94,9 +96,11 @@ class OmiInitHandler
             trans('OltManager - information review'),
             '^((omideviceerror)(info|list|search))$',
             null,
-            array('omi' => array(
-                'omideviceerrorlist',
-            ))
+            [
+                'omi' => [
+                    'omideviceerrorlist',
+                ]
+            ]
         );
         $access->insertPermission($permission, AccessRights::FIRST_FORBIDDEN_PERMISSION);
 
@@ -105,9 +109,11 @@ class OmiInitHandler
             trans('OltManager - LMS API full access'),
             '^((omiapidata)(getter))$',
             null,
-            array('omi' => array(
-                'omiapidatagetter',
-            ))
+            [
+                'omi' => [
+                    'omiapidatagetter',
+                ]
+            ]
         );
         $access->insertPermission($permission, AccessRights::FIRST_FORBIDDEN_PERMISSION);
 
@@ -116,9 +122,11 @@ class OmiInitHandler
             trans('OltManager - OMI API full access'),
             '^((omidata)(getter))$',
             null,
-            array('omi' => array(
-                'omidatagetter',
-            ))
+            [
+                'omi' => [
+                    'omidatagetter',
+                ]
+            ]
         );
         $access->insertPermission($permission, AccessRights::FIRST_FORBIDDEN_PERMISSION);
 
