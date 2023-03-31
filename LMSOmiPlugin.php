@@ -16,8 +16,6 @@ class LMSOmiPlugin extends LMSPlugin
     const PLUGIN_DESCRIPTION = 'Integracja z systemem OltManager';
     const PLUGIN_AUTHOR = 'Krzysztof Masłowski &lt;krzysztof@maslowski.it&gt;';
 
-    const PLUGIN_MODE = 'PROD'; // DEV/PROD; SET TO PROD WHEN GOING TO PRODUCTION!!!
-
     private static $omi = null;
 
     public static function getOmiInstance(): ?OMI
