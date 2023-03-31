@@ -10,9 +10,9 @@
             <img src="img/producer.gif" alt="">
             <b>{trans("Name:")}</b>
         </td>
-        <td class="fbt" width="5%" align="right" valign="top">
+        <th class="fbt" width="5%" align="right" valign="top">
             {trans("Object name:")}
-        </td>
+        </th>
         <td class="fbt" width="1%" align="right" valign="top">
             {trans("Object:")}
         </td>
@@ -62,14 +62,14 @@
             ({$errorDevices[devicelist].lmsId|string_format:"%04d"})
         </td>
         <td width="1%" class="fright" align="right">
-            <nobr>
+            <span style="white-space: nowrap;">
                 <a href="{$errorDevices[devicelist].link.edit}">
                     <img src="img/edit.gif" alt="[ {trans(" Edit")} ]" title="[ {trans("Edit")} ]">
                 </a>
                 <a href="{$errorDevices[devicelist].link.show}">
                     <img src="img/info.gif" alt="[ {trans(" Info")} ]" title="[ {trans("Info")} ]">
                 </a>
-            </nobr>
+            </span>
         </td>
     </tr>
     {sectionelse}
