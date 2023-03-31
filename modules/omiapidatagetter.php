@@ -12,13 +12,11 @@ $layout['pagetitle'] = 'OMI - API';
 
 $params = $_GET;
 
-$module = $params['module'] ?? 'omi';
-
 $type = $params['type'] ?? 'error';
 
 unset($params['m'] ,$params['module'], $params['type']);
 
-$data = $omi->getFromOmiModule($type, $params);
+$data = $omi->getFromApiModule($type, $params);
 
 header('Content-Type: application/json');
 echo json_encode($data);
