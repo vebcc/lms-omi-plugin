@@ -31,30 +31,26 @@ class LMSOmiPlugin extends LMSPlugin
     public function registerHandlers()
     {
         $this->handlers = [
-            'smarty_initialized' => array(
+            'smarty_initialized' => [
                 'class' => 'OmiInitHandler',
                 'method' => 'smartyInit',
-            ),
+            ],
             'modules_dir_initialized' => [
                 'class' => 'OmiInitHandler',
                 'method' => 'modulesDirInit',
             ],
-            'menu_initialized' => array(
+            'menu_initialized' => [
                 'class' => 'OmiInitHandler',
                 'method' => 'menuInit'
-            ),
-            /*'netdevinfo_before_display' => array(
-                'class' => 'OmiNetDevHandler',
-                'method' => 'netdevinfoBeforeDisplay'
-            ),
-            'nodeinfo_before_display' => array(
+            ],
+            'nodeinfo_before_display' => [
                 'class' => 'OmiNodeHandler',
                 'method' => 'nodeInfoBeforeDisplay'
-            ),
-            'customerinfo_before_display' => array(
-                'class' => 'OmiCustomerHandler',
-                'method' => 'customerInfoBeforeDisplay'
-            ),*/
+            ],
+            'netdevinfo_before_display' => [
+                'class' => 'OmiNetDevHandler',
+                'method' => 'netDevInfoBeforeDisplay'
+            ],
         ];
     }
 }
