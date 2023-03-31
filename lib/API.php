@@ -19,6 +19,7 @@ class API
             if($params['lmsDirect'] == 1){
                 $object = $this->lms;
             }
+            unset($params['lmsDirect']);
         }
 
         if(!method_exists($object, $type)){
@@ -45,8 +46,8 @@ class API
 
         foreach ($r->getParameters() as $param) {
             $value = null;
-            if(key_exists($param->getName(), $params)){
-                $value = $params[$param->getName()];
+            if(key_exists('arg'.$param->getName(), $params)){
+                $value = $params['arg'.$param->getName()];
             }
 
             if(!$value && !$param->isOptional()){
