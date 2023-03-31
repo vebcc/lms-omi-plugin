@@ -42,19 +42,46 @@ uprawnienie 'omi_full_access'.
 Dodatkowym uprawnieniem jest omi_read_only, które pozwala na wejście do sekcji
 Urządzenia z błędami, czyli do modułu 'omideviceerrorlist'.
 
-Nie jest zalecane nadawanie uprawnienia 'omi_full_access' nikomu poza kontem
-do integracji, ponieważ moduł API wtyczki pozwala na pełny dostęp do klasy LMS.
+Inne uprawnienia:
+- 'omi_api_data_getter' - pełne uprawnienia do modułu 'omiapidatagetter' (API)
+- 'omi_data_getter' - pełne uprawnienia do modułu 'omidatagetter' (API)
+
+Nie jest zalecane nadawanie uprawnienia 'omi_full_access','omi_api_data_getter'
+, 'omi_data_getter' nikomu poza kontem do integracji, ponieważ moduł API
+wtyczki pozwala na pełny dostęp do klasy LMS.
 Pozwala to na obejście wszystkich innych uprawnień systemowych!!!.
 
 ## API
-Dodatkowo napisana została prosta klasa umożliwiająca pobieranie wszystkich danych,
-które można pozyskać z głównej klasy LMS
+API dzieli się na 2 sekcje. 1 służy do pobierania gotowych danych do systemu OltManager.
+2 sekcja pozwala na pobieranie surowych danych w formie json z systemu.
+Z parametrem 'lmsDirect=1', dodatkowo pozwala uruchamiać funkcje bezpośrednio
+z głównej klasy 'LMS'.
+### OMI API
+Obecnie obsługiwane funkcje:
+    - getNetworkDeviceConnections
 
->/?m=omidatagetter&module=api&lmsDirect=1&type={functionName}
+>/?m=omidatagetter&type={functionName}{otherParams}
+
+Przykłady:
+>/?m=omidatagetter&type=getNetworkDeviceConnections
 
 {functionName} - nazwa funkcji w klasie LMS.
 W ten sposób możliwe jest uruchomienie dowolnej funkcji.
 Dodatkowo przez utworzenie Refleksji pobierane są wymagane zmienne z funkcji,
-przez co możliwe jest podanie dodatkowych parametrów. Np. można dodać &order=asc.
+przez co możliwe jest podanie dodatkowych parametrów. Np. można dodać &argorder=asc.
+Do wykonywanej funkcji zostanie dodany argument 'order' z wartościa 'asc'.
+Należy pamiętać, że jeżeli w funkcji argument nosi nazwę np. 'params' to należy
+podać 'argparams'. (Wynika to z możliwości z duplikowania podstawowych argumentów API)
+(Dodatkowo wspiera wyłącznie proste parametry, co oznacza że przekazywanie tablic
+nie jest obecnie możliwe w żadnej formie, ponieważ obecnie jest przekazywana surowa wartość)
+### LMS API
 
->/?m=omidatagetter&module=api&lmsDirect=1&type=GetNetDevList&order=asc
+>/?m=omiapidatagetter&type={functionName}{otherParams}
+
+W przypadku podania '&lmsDirect=1' są wykonywane funkcje bezpośrednio z klasy
+LMS. Bez podania tego parametru wykonywane są funkcje z klasy API wtyczki.
+
+Przykłady:
+>/?m=omiapidatagetter&type=GetNetDevList
+>/?m=omiapidatagetter&lmsDirect=1&type=GetNetDevList&argorder=name,desc
+

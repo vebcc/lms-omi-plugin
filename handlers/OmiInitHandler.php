@@ -100,5 +100,27 @@ class OmiInitHandler
         );
         $access->insertPermission($permission, AccessRights::FIRST_FORBIDDEN_PERMISSION);
 
+        $permission = new Permission(
+            'omi_api_data_getter',
+            trans('OltManager - LMS API full access'),
+            '^((omiapidata)(getter))$',
+            null,
+            array('omi' => array(
+                'omiapidatagetter',
+            ))
+        );
+        $access->insertPermission($permission, AccessRights::FIRST_FORBIDDEN_PERMISSION);
+
+        $permission = new Permission(
+            'omi_data_getter',
+            trans('OltManager - OMI API full access'),
+            '^((omidata)(getter))$',
+            null,
+            array('omi' => array(
+                'omidatagetter',
+            ))
+        );
+        $access->insertPermission($permission, AccessRights::FIRST_FORBIDDEN_PERMISSION);
+
     }
 }
