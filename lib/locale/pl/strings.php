@@ -12,3 +12,4 @@ $_LANG['probablyCharacter'] = 'Prawdopodobnie podano znak zamiast nr w adresie o
 $_LANG['onuIdMissing'] = 'Brak ID onu w adresie';
 $_LANG['invalidVariant'] = 'Nieobsługiwany wariant zapisu adresu onu';
 $_LANG['oltShortNameMissing'] = 'Nie podano skróconej nazwy olta przed adresem onu. (np. TU_)';
+$_LANG['OltManager Onu'] = 'OltManager';

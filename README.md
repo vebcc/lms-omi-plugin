@@ -7,7 +7,7 @@ konieczne było stworzenie wtyczki, która pozwoli wyciągać niezbędne dane z 
 NetDev nie ma możliwości pobrania adresu jako TERYT.
 
 Wtyczka dodatkowo zapewnia możliwość szybkiego przejścia do systemu OlManager
-bezpośrednio z Node i NetDev przez dodanie przycisku, który kieruje bezpśrednio
+bezpośrednio z Node i NetDev przez dodanie przycisku, który kieruje bezpośrednio
 na zsynchronizowane Onu.
 
 ## Moduły
@@ -24,6 +24,12 @@ Do poprawnej pracy wtyczki niezbędne jest dodanie ustawień do systemu
 
 Pełny adres do aplikacji OltManager
 >omi.olt_manager_url
+
+Token do autoryzacji z systemu OltManager
+W systemie OltManager musi być dodane konto, które ze względów bezpieczeństwa
+powinno mieć uprawnienia wyłącznie do integracji LMS. Dodatkowo należy wygenerować
+token i wprowadzić go do LMS'a.
+>omi.olt_manager_token
 
 Typ dostawcy adresów onu.
 Domyślnie i obecnie jedyny wspierany: "description"
