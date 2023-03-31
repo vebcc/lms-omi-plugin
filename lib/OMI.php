@@ -20,8 +20,6 @@ class OMI
 
     public function getFromOmiModule(string $type, array $params): array
     {
-        $this->lms->addConfigOption();
-
         switch ($type) { //ready to match php 8.0
             default:
                 $result = $this->getDefaultResult();
