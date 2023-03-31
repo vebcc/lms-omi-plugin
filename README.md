@@ -35,6 +35,17 @@ Typ dostawcy adresów onu.
 Domyślnie i obecnie jedyny wspierany: "description"
 >omi.provider_type
 
+## Uprawnienia
+Do poprawnej pracy OltManager'a należy utworzyć konto w systemie LMS i nadać mu
+uprawnienie 'omi_full_access'.
+
+Dodatkowym uprawnieniem jest omi_read_only, które pozwala na wejście do sekcji
+Urządzenia z błędami, czyli do modułu 'omideviceerrorlist'.
+
+Nie jest zalecane nadawanie uprawnienia 'omi_full_access' nikomu poza kontem
+do integracji, ponieważ moduł API wtyczki pozwala na pełny dostęp do klasy LMS.
+Pozwala to na obejście wszystkich innych uprawnień systemowych!!!.
+
 ## API
 Dodatkowo napisana została prosta klasa umożliwiająca pobieranie wszystkich danych,
 które można pozyskać z głównej klasy LMS

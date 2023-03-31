@@ -16,7 +16,7 @@ class LMSOmiPlugin extends LMSPlugin
     const PLUGIN_DESCRIPTION = 'Integracja z systemem OltManager';
     const PLUGIN_AUTHOR = 'Krzysztof Masłowski &lt;krzysztof@maslowski.it&gt;';
 
-    const PLUGIN_MODE = 'DEV'; // DEV/PROD; SET TO PROD WHEN GOING TO PRODUCTION!!!
+    const PLUGIN_MODE = 'PROD'; // DEV/PROD; SET TO PROD WHEN GOING TO PRODUCTION!!!
 
     private static $omi = null;
 
@@ -42,6 +42,10 @@ class LMSOmiPlugin extends LMSPlugin
             'menu_initialized' => [
                 'class' => 'OmiInitHandler',
                 'method' => 'menuInit'
+            ],
+            'access_table_initialized' => [
+                'class' => 'OmiInitHandler',
+                'method' => 'accessTableInit'
             ],
             'nodeinfo_before_display' => [
                 'class' => 'OmiNodeHandler',

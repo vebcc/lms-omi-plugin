@@ -71,4 +71,34 @@ class OmiInitHandler
         $i = array_search('netdevices', $menu_keys);
         return array_slice($hook_data, 0, $i, true) + $menu_omi + array_slice($hook_data, $i, null, true);
     }
+
+    /**
+     * Modifies access table
+     *
+     */
+    public function accessTableInit()
+    {
+        $access = AccessRights::getInstance();
+
+        $permission = new Permission(
+            'omi_full_access',
+            trans('OltManager - full access'),
+            '^omi.*$',
+            null,
+            array('omi' => Permission::MENU_ALL)
+        );
+        $access->insertPermission($permission, AccessRights::FIRST_FORBIDDEN_PERMISSION);
+
+        $permission = new Permission(
+            'omi_read_only',
+            trans('OltManager - information review'),
+            '^((omideviceerror)(info|list|search))$',
+            null,
+            array('omi' => array(
+                'omideviceerrorlist',
+            ))
+        );
+        $access->insertPermission($permission, AccessRights::FIRST_FORBIDDEN_PERMISSION);
+
+    }
 }
