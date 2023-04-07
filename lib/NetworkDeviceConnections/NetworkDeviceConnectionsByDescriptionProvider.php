@@ -76,9 +76,6 @@ class NetworkDeviceConnectionsByDescriptionProvider implements NetworkDeviceConn
                     'cityIdent' => $node['city_ident'],
                     'stateIdent' => $node['state_ident'],
                     'streetIdent' => $node['street_ident'],
-                    'terc' => $node['terc'],
-                    'simc' => $node['simc'],
-                    'ulic' => $node['ulic'],
                     'location_house' => $node['location_house']
                 ],
             ];
@@ -148,9 +145,6 @@ class NetworkDeviceConnectionsByDescriptionProvider implements NetworkDeviceConn
                     'cityIdent' => $netDev['city_ident'],
                     'stateIdent' => $netDev['state_ident'],
                     'streetIdent' => $netDev['street_ident'],
-                    'terc' => $netDev['terc'],
-                    'simc' => $netDev['simc'],
-                    'ulic' => $netDev['ulic'],
                     'location_house' => $netDev['location_house']
                 ],
             ];
