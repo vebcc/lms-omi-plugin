@@ -3,16 +3,24 @@
 require_once 'DataProvider/NetDevProvider.php';
 require_once 'Converter/DescriptionToAddressConverter.php';
 
+require_once 'DataProvider/AddressProvider.php';
+require_once 'DataProvider/CustomerProvider.php';
+
 class NetworkDeviceConnectionsByDescriptionProvider implements NetworkDeviceConnectionsProviderInterface
 {
     private $lms;
 
     private $descriptionToAddressConverter;
+    private $addressProvider;
+    private $customerProvider;
 
     public function __construct()
     {
         $this->lms = LMS::getInstance();
         $this->descriptionToAddressConverter = new DescriptionToAddressConverter();
+        $this->addressProvider = new AddressProvider();
+        $this->customerProvider = new CustomerProvider();
+
     }
 
     public function getNetworkDeviceConnections(): array
@@ -50,45 +58,61 @@ class NetworkDeviceConnectionsByDescriptionProvider implements NetworkDeviceConn
 
         foreach ($nodeCollection as $node) {
             $address = $this->descriptionToAddressConverter->convert($node['info'], $onlyError);
-            if((!$address) || (!$onlyError && key_exists('error', $address)) || ($onlyError && !key_exists('error', $address))){
+            if ((!$address) || (!$onlyError && key_exists('error', $address)) || ($onlyError && !key_exists('error', $address))) {
                 continue;
             }
 
-            if(!$onlyError){
-                if(key_exists($address['stringAddress'], $onuDeviceConnections)){
+            if (!$onlyError) {
+                if (key_exists($address['stringAddress'], $onuDeviceConnections)) {
                     $onuDeviceConnection = $onuDeviceConnections[$address['stringAddress']];
-                }else{
+                } else {
                     $onuDeviceConnection = $this->createNewOnuDeviceConnections($address);
                 }
-            }else{
+            } else {
                 $onuDeviceConnection = $this->createNewOnuDeviceConnections($address);
             }
 
+            $owner = [];
+            if($node['ownerid']){
+                $ownerData = $this->customerProvider->getCustomerById($node['ownerid']);
+                $owner = [
+                    'id' => (int)$ownerData['id'],
+                    'name' => $ownerData['name'],
+                    'secondName' => $ownerData['lastname'],
+                ];
+            }
 
             $device = [
-                'lmsId' => $node['id'],
-                'ownerId' => $node['ownerid'],
-                'netDev' => $node['netdev'],
-                'netNode' => $node['netnodeid'],
+                'lmsId' => $node['id'] ? (int)$node['id'] : null,
+                'name' => $node['name'],
+                'netDev' => $node['netdev'] ? (int)$node['netdev'] : null,
+                'netNode' => $node['netnodeid'] ? (int)$node['netnodeid'] : null,
+                'data' => [
+                    'ip' => $node['ip'],
+                    'mac' => $node['mac'],
+                    'serial' => null,
+                    'producer' => null,
+                    'model' => null,
+                ],
+                'owner' => $owner,
                 'address' => [
+                    'cityIdent' => (int)$node['city_ident'],
+                    'streetIdent' => (int)$node['street_ident'],
+                    'location_house' => $node['location_house'],
                     'longitude' => $node['longitude'],
                     'latitude' => $node['latitude'],
-                    'cityIdent' => $node['city_ident'],
-                    'stateIdent' => $node['state_ident'],
-                    'streetIdent' => $node['street_ident'],
-                    'location_house' => $node['location_house']
                 ],
             ];
 
-            if($onlyError){
+            if ($onlyError) {
                 $device['error'] = $address;
             }
 
             array_push($onuDeviceConnection['devices'], $device);
 
-            if($onlyError){
+            if ($onlyError) {
                 array_push($onuDeviceConnections, $onuDeviceConnection);
-            }else{
+            } else {
                 $onuDeviceConnections[$address['stringAddress']] = $onuDeviceConnection;
             }
         }
@@ -100,7 +124,6 @@ class NetworkDeviceConnectionsByDescriptionProvider implements NetworkDeviceConn
     {
         $netDevProvider = new NetDevProvider();
 
-        //$netDevCollection = $this->lms->GetNetDevList();
         $netDevCollection = $netDevProvider->getNetDevCollection();
 
         unset(
@@ -110,6 +133,8 @@ class NetworkDeviceConnectionsByDescriptionProvider implements NetworkDeviceConn
         );
 
         foreach ($netDevCollection as $netDev) {
+
+
             $address = $this->descriptionToAddressConverter->convert($netDev['description'], $onlyError);
             if((!$address) || (!$onlyError && key_exists('error', $address)) || ($onlyError && !key_exists('error', $address))){
                 continue;
@@ -125,40 +150,95 @@ class NetworkDeviceConnectionsByDescriptionProvider implements NetworkDeviceConn
                 $onuDeviceConnection = $this->createNewOnuDeviceConnections($address);
             }
 
+            $ownerId = $netDev['ownerid'];
 
+            $locationAddress = [];
 
-            $locationAddress =  $this->lms->GetCustomerAddress((int)$netDev['ownerid'], DEFAULT_LOCATION_ADDRESS);
-            if(!$locationAddress){
-                $locationAddress =  $this->lms->GetCustomerAddress((int)$netDev['ownerid'], BILLING_ADDRESS);
+            if ($netDev['street_ident'] && $netDev['city_ident']) {
+                $locationAddress = [
+                    'cityIdent' => $netDev['city_ident'],
+                    'streetIdent' => $netDev['street_ident'],
+                    'location_house' => $netDev['location_house']
+                ];
+            } else {
+                if($ownerId){
+                    $locationAddressId = $this->lms->GetCustomerAddress((int)$ownerId, DEFAULT_LOCATION_ADDRESS);
+                    if (!$locationAddressId) {
+                        $locationAddressId = $this->lms->GetCustomerAddress((int)$ownerId, BILLING_ADDRESS);
+                    }
+                }else{
+                    $nodesCollection = $this->lms->GetNetDevLinkedNodes($netDev['id']);
+                    foreach ($nodesCollection as $node) {
+                        $locationAddressId = $this->lms->GetCustomerAddress((int)$node['ownerid'], DEFAULT_LOCATION_ADDRESS);
+                        if(!$locationAddressId){
+                            $locationAddressId = $this->lms->GetCustomerAddress((int)$node['ownerid'], BILLING_ADDRESS);
+                        }
+                        $ownerId = $node['ownerid'];
+                        if($locationAddressId){
+                            break;
+                        }
+                    }
+                }
+
+                if ($locationAddressId) {
+                    $locationAddressIdents = $this->addressProvider->getAddressByAddressId($locationAddressId);
+
+                    $locationAddress = [
+                        'cityIdent' => (int)$locationAddressIdents['cityIdent'],
+                        'streetIdent' => (int)$locationAddressIdents['streetIdent'],
+                        'location_house' => $locationAddressIdents['house']
+                    ];
+                }
+            }
+
+            if(!$ownerId){
+                $nodesCollection = $this->lms->GetNetDevLinkedNodes($netDev['id']);
+                foreach ($nodesCollection as $node) {
+                    $ownerId = $node['ownerid'];
+                    if($ownerId){
+                        break;
+                    }
+                }
+            }
+
+            $locationAddress['longitude'] = $netDev['longitude'];
+            $locationAddress['latitude'] = $netDev['latitude'];
+
+            $owner = [];
+            if($ownerId){
+                $ownerData = $this->customerProvider->getCustomerById($ownerId);
+                $owner = [
+                    'id' => (int)$ownerData['id'],
+                    'name' => $ownerData['name'],
+                    'secondName' => $ownerData['lastname'],
+                ];
             }
 
             $networkDevice = [
-                'lmsId' => $netDev['id'],
-                'ownerId' => $netDev['ownerid'],
-                'netNode' => $netDev['netnodeid'],
-                'producer' => $netDev['producer'],
-                'model' => $netDev['model'],
-                'serialNumber' => $netDev['serialnumber'],
-                'address' => [
-                    'longitude' => $netDev['longitude'],
-                    'latitude' => $netDev['latitude'],
-                    'cityIdent' => $netDev['city_ident'],
-                    'stateIdent' => $netDev['state_ident'],
-                    'streetIdent' => $netDev['street_ident'],
-                    'location_house' => $netDev['location_house']
+                'lmsId' => $netDev['id'] ? (int)$netDev['id'] : null,
+                'name' => $netDev['name'],
+                'netNode' => $netDev['netnodeid'] ? (int)$netDev['netnodeid'] : null,
+                'data' => [
+                    'ip' => null,
+                    'mac' => null,
+                    'serial' => $netDev['serialnumber'],
+                    'producer' => $netDev['producer'],
+                    'model' => $netDev['model'],
                 ],
+                'owner' => $owner,
+                'address' => $locationAddress,
             ];
 
-            if($onlyError){
+            if ($onlyError) {
                 $networkDevice['error'] = $address;
             }
 
             array_push($onuDeviceConnection['networkDevices'], $networkDevice);
 
 
-            if($onlyError){
+            if ($onlyError) {
                 array_push($onuDeviceConnections, $onuDeviceConnection);
-            }else{
+            } else {
                 $onuDeviceConnections[$address['stringAddress']] = $onuDeviceConnection;
             }
         }
@@ -174,7 +254,6 @@ class NetworkDeviceConnectionsByDescriptionProvider implements NetworkDeviceConn
             'networkDevices' => [],
         ];
     }
-
 
 
 }
