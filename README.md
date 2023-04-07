@@ -58,7 +58,10 @@ Z parametrem 'lmsDirect=1', dodatkowo pozwala uruchamiać funkcje bezpośrednio
 z głównej klasy 'LMS'.
 ### OMI API
 Obecnie obsługiwane funkcje:
-    - getNetworkDeviceConnections
+- getNetworkDeviceConnections - pobiera listę NetworkDeviceConnections która jest
+odpowiednikiem encji w OltManager. NetworkDeviceConnection zawiera komputery(device)
+i urządzenia sieciowe(networkDevice) razem z adresem i właścicielem. Wyświetla wyłącznie
+listę z urządzeniami które zostały rozpoznane jako ONU.
 
 >/?m=omidatagetter&type={functionName}{otherParams}
 
