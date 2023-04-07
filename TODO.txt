@@ -1,1 +1,1 @@
-//TODO: fix location address in network devices
+//TODO: ADD MIGRATIONS to add settings automatically

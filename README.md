@@ -10,6 +10,28 @@ Wtyczka dodatkowo zapewnia możliwość szybkiego przejścia do systemu OlManage
 bezpośrednio z Node i NetDev przez dodanie przycisku, który kieruje bezpośrednio
 na zsynchronizowane Onu.
 
+## Instalacja
+Należy pamiętać, że wtyczka była pisana na wersji PHP 7.3 dlatego, jeżeli instancja
+LMS'a jest na niższej wersji, instalacja wtyczki nie będzie możliwa! OltManager opiera się
+na adresach TERYT, dlatego z systemu LMS dane są pobierane wyłącznie jako TERYT. Oznacza to,
+że adresy, które nie są wprowadzone w LMS jako TERYT, będą pomijane!
+
+- Pobieramy najnowszą wersję wtyczki:
+https://github.com/vebcc/lms-omi-plugin/releases
+- Rozpakowany folder LMSOmiPlugin kopiujemy do folderu "plugins" który znajduje się
+w głównym katalogu LMS. W przypadku, gdy zgodnie z konfiguracją lms.ini, folder plugins znajduje
+- się np. w "/usr/share/lms/plugins" należy skopiować wtyczkę do tego folderu. W specyficznych
+przypadkach należy wrzucić wtyczkę do obydwóch lokalizacji.
+- Przechodzimy do głównego katalogu, w którym jest zainstalowany LMS np. "/var/www/html/lms"
+i wykonujemy polecenie: 
+>./composer update --no-dev -n
+- Następnie przechodzimy do LMS'a do zakładki "Konfiguracja>Wtyczki" i włączamy wtyczkę.
+- W zakładce "Konfiguracja>Nowe ustawienie" dodajemy ustawienia zgodnie z rozdziałem "Ustawienia" poniżej.
+- Jeśli wszystko przebiegło pomyślnie, w menu pojawi się zakładka OltManager.
+Przechodząc do OltManager>OltManager powinniśmy zostać przeniesieni do aplikacji OLTManager.
+- Ostatnim krokiem jest przejście do OltManager>Urządzenia z błędami, w której zweryfikujemy,
+czy wszystkie nasze komputery i urządzenia sieciowe są poprawnie skonfigurowane
+do pracy z wtyczką i systemem OlManager.
 ## Moduły
 
 - Urządzenia z błędami - wyświetla listę z listą urządzeń, które mają
