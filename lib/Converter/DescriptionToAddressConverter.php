@@ -56,10 +56,10 @@ class DescriptionToAddressConverter
         }
 
         return [
-            'oltTagId' => $partOfAddress['oltTagId'],
-            'cardTagId' => $partOfAddress['cardTagId'],
-            'portTagId' => $partOfAddress['portTagId'],
-            'onuTagId' => $onuTagId,
+            'oltTagId' => (int)$partOfAddress['oltTagId'],
+            'cardTagId' => (int)$partOfAddress['cardTagId'],
+            'portTagId' => (int)$partOfAddress['portTagId'],
+            'onuTagId' => (int)$onuTagId,
             'oltShortName' => $oltShortName,
             'stringAddress' =>
                 $oltShortName .
