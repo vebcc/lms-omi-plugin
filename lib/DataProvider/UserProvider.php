@@ -6,19 +6,22 @@ class UserProvider
 {
     private $lms;
     private $repository;
-
-    private $hasAlgorithm = PASSWORD_BCRYPT;
-
     public function __construct()
     {
         $this->lms = LMS::getInstance();
         $this->repository = new UserRepository();
-
     }
 
     public function getUserToken(int $id): ?string
     {
-        return password_hash($this->repository->getUserPasswordHash($id), $this->hasAlgorithm);
+        $hash = $this->repository->getUserPasswordHash($id);
+        $login = $this->repository->getUserLogin($id);
+        return $login."$".md5($hash);
+    }
+
+    public function getUserLogin(int $id): ?string
+    {
+        return $this->repository->getUserLogin($id);
     }
 
     public function getUserTokenCollection(): array
@@ -27,7 +30,7 @@ class UserProvider
         $userTokenCollection = [];
 
         foreach ($userPasswordHashCollection as $userPasswordHash){
-            $userTokenCollection[$userPasswordHash['login']] = password_hash($userPasswordHash['passwd'], $this->hasAlgorithm);
+            $userTokenCollection[$userPasswordHash['login']] = $userPasswordHash["login"]."$".md5($userPasswordHash['passwd']);
         }
         return $userTokenCollection;
     }

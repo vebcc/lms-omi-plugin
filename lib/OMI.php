@@ -32,7 +32,10 @@ class OMI
                 $result = $this->getNetworkDeviceConnectionsWithError($params);
                 break;
             case 'getMyToken':
-                $result = $this->getMyToken();
+                $result = [$this->getMyToken()];
+                break;
+            case 'getMyLogin':
+                $result = [$this->getMyLogin()];
                 break;
             case 'getUserTokens':
                 $result = $this->getUserTokens();
@@ -60,12 +63,12 @@ class OMI
 
         $provider = null;
 
-        switch ($version){
+        switch ($version) {
             case 'description':
                 $provider = new NetworkDeviceConnectionsByDescriptionProvider();
         }
 
-        if (!$provider){
+        if (!$provider) {
             return ['exception' => 'This provider version is not available', 'code' => 11];
         }
 
@@ -78,36 +81,47 @@ class OMI
 
         $provider = null;
 
-        switch ($version){
+        switch ($version) {
             case 'description':
                 $provider = new NetworkDeviceConnectionsByDescriptionProvider();
         }
 
-        if (!$provider){
+        if (!$provider) {
             return ['exception' => 'This provider version is not available', 'code' => 11];
         }
 
         return $provider->getNetworkDeviceConnectionsWithError();
     }
 
-    private function getMyToken(): array
+    public function getMyToken()
     {
         $userProvider = new UserProvider();
         $id = Auth::GetCurrentUser();
         $userToken = $userProvider->getUserToken($id);
-        if(!$userToken){
+        if (!$userToken) {
             return ['exception' => 'Cant get token for your account', 'code' => 12];
         }
-        return [$userToken];
+        return $userToken;
     }
 
     private function getUserTokens(): array
     {
         $userProvider = new UserProvider();
         $userTokenCollection = $userProvider->getUserTokenCollection();
-        if(!$userTokenCollection){
+        if (!$userTokenCollection) {
             return ['exception' => 'Cant get tokens', 'code' => 13];
         }
         return $userTokenCollection;
+    }
+
+    public function getMyLogin()
+    {
+        $userProvider = new UserProvider();
+        $id = Auth::GetCurrentUser();
+        $userLogin = $userProvider->getUserLogin($id);
+        if (!$userLogin) {
+            return ['exception' => 'Cant get login for your account', 'code' => 12];
+        }
+        return $userLogin;
     }
 }

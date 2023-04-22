@@ -1,4 +1,6 @@
-<button type="button" class="lms-ui-button omi-om-onu-button" style="display: none" id="clone-netdev" onclick="location.href = '{$omioltmanagerurl}'+'/onu/'+$omiOnuId;">
+<button type="button" class="lms-ui-button omi-om-onu-button" style="display: none" id="clone-netdev" onclick="
+location.href = '{$omioltmanagerurl}'+'/onu/'+$omiOnuId+$omiParams;
+">
     <img src="img/producer.gif" alt=""><span class="lms-ui-label">{trans("OltManager Onu")}</span>
 </button>
 
@@ -17,6 +19,8 @@
     let $omiOMDevice = '{$omioltmanagerdevice}';
 
     let $omiOnuId = null;
+
+    let $omiParams = '{$omioltmanagerparams}';
     //-->
 </script>
 
