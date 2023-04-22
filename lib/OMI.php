@@ -6,6 +6,7 @@ set_include_path(PLUGINS_DIR . DIRECTORY_SEPARATOR . LMSOmiPlugin::PLUGIN_DIRECT
 require_once 'NetworkDeviceConnections/NetworkDeviceConnectionsProviderInterface.php';
 require_once 'NetworkDeviceConnections/NetworkDeviceConnectionsByDescriptionProvider.php';
 require_once 'API.php';
+require_once 'DataProvider/UserProvider.php';
 
 class OMI
 {
@@ -29,6 +30,12 @@ class OMI
                 break;
             case 'getNetworkDeviceConnectionsWithError':
                 $result = $this->getNetworkDeviceConnectionsWithError($params);
+                break;
+            case 'getMyToken':
+                $result = $this->getMyToken();
+                break;
+            case 'getUserTokens':
+                $result = $this->getUserTokens();
                 break;
         }
 
@@ -83,5 +90,24 @@ class OMI
         return $provider->getNetworkDeviceConnectionsWithError();
     }
 
+    private function getMyToken(): array
+    {
+        $userProvider = new UserProvider();
+        $id = Auth::GetCurrentUser();
+        $userToken = $userProvider->getUserToken($id);
+        if(!$userToken){
+            return ['exception' => 'Cant get token for your account', 'code' => 12];
+        }
+        return [$userToken];
+    }
 
+    private function getUserTokens(): array
+    {
+        $userProvider = new UserProvider();
+        $userTokenCollection = $userProvider->getUserTokenCollection();
+        if(!$userTokenCollection){
+            return ['exception' => 'Cant get tokens', 'code' => 13];
+        }
+        return $userTokenCollection;
+    }
 }
