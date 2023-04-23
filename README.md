@@ -57,6 +57,12 @@ Typ dostawcy adresów onu.
 Domyślnie i obecnie jedyny wspierany: "description"
 >omi.provider_type
 
+Automatyczne logowanie do systemu OltManager
+Domyślnie "false", zmiana na true powoduje automatyczne dodawanie tokenów autoryzacyjnych do adresu url
+przycisków. Należy pamiętać że przed włączeniem w LMS, należy włączyć logowanie przez "Integration User",
+w systemie OltManager.
+>omi.olt_manager_automatic_login
+
 ## Uprawnienia
 Do poprawnej pracy OltManager'a należy utworzyć konto w systemie LMS i nadać mu
 uprawnienie 'omi_full_access'.
@@ -84,6 +90,12 @@ Obecnie obsługiwane funkcje:
 odpowiednikiem encji w OltManager. NetworkDeviceConnection zawiera komputery(device)
 i urządzenia sieciowe(networkDevice) razem z adresem i właścicielem. Wyświetla wyłącznie
 listę z urządzeniami które zostały rozpoznane jako ONU.
+- getNetworkDeviceConnectionsWithError - pobiera listę obiektów z błędami. Lista zawiera informacje o błędach
+w obiektach które nie pozwalają na poprawne wygenerowanie NetworkDeviceConnections do integracji z OM. Wykorzystywane
+w module 'omideviceerrorlist'.
+- getMyToken - pobiera token zalogowanego użytkownika wykorzystywany do autoryzacji OM.
+- getUserTokens - pobiera tokeny wszystkich włączonych użytkowników systemu.
+- getMyLogin - pobiera login zalogowanego użytkownika.
 
 >/?m=omidatagetter&type={functionName}{otherParams}
 
