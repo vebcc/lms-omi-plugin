@@ -6,9 +6,15 @@ konieczne było stworzenie wtyczki, która pozwoli wyciągać niezbędne dane z 
 "API" lmsa dodatkowo nie pozwala na pobranie wszystkich danych. Na przykład w przypadku
 NetDev nie ma możliwości pobrania adresu jako TERYT.
 
-Wtyczka dodatkowo zapewnia możliwość szybkiego przejścia do systemu OlManager
+Wtyczka dodatkowo zapewnia możliwość szybkiego przejścia do systemu OltManager
 bezpośrednio z Node i NetDev przez dodanie przycisku, który kieruje bezpośrednio
 na zsynchronizowane Onu.
+
+Bez systemu OltManager wtyczka może służyć wyłącznie jako rozszerzenie API LMS.
+Należy pamiętać o poprawnej konfiguracji po stronie systemu OltManager. Bez synchronizacji
+po stronie OM, żadne przyciski w Node, i NetDev nie będą wyświetlane. Synchronizacja
+wykonuje się po stronie OM co określony czas, wiec po uruchomieniu należy odczekać do
+wykonania 1 synchronizacji.
 
 ## Instalacja
 Należy pamiętać, że wtyczka była pisana na wersji PHP 7.3 dlatego, jeżeli instancja
