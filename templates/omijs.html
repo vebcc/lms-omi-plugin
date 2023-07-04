@@ -56,8 +56,11 @@
 
         let $onuId = result['data']['findOnu']['id'].split('/')[3];
 
-        $(".omi-om-onu-button").show();
+        let $omiButton = $(".omi-om-onu-button");
+
+        $omiButton.show();
         $omiOnuId = $onuId;
+        $omiButton.attr('href', $omiOMUrl + '/onu/' + $omiOnuId + $omiParams);
     }
 </script>
 {/literal}
