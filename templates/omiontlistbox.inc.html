@@ -1,0 +1,214 @@
+<!--// $Id$ //-->
+{$xajax}
+<TABLE class="lmsbox lms-ui-tab-container lms-ui-sortable" id="gomi-onu" data-label="{trans("OltManager ONU's")}">
+<COLGROUP>
+    <COL style="width: 100%;">
+</COLGROUP>
+<THEAD>
+<TR class="hand lmsbox-titlebar" data-lmsbox-content="omi-onu-panel" onclick="showOrHide('omi-onu-panel')">
+    <TD class="fall text-left bold nobr">
+        <IMG SRC="img/LMSOmiPlugin/olt_manager.ico" alt="" class="lms-ui-sortable-handle" style="max-height: 20px; max-width: auto;">
+        {if empty($gpondasanonus)}
+        {$gpondasanonucount=0}
+        {else}
+        {$gpondasanonucount=count($gpondasanonus)}
+        {/if}
+        {t a=$gpondasanonucount}OltManager ONU's ($a):{/t}
+    </TD>
+</TR>
+</THEAD>
+<TBODY>
+<TR id="omi-onu-panel" style="display: none;">
+    <TD class="fall">
+        <TABLE cellpadding="5" cellspacing="0" WIDTH="100%">
+            <TR class="dark">
+                <TD class="fleftu" style="width: 57%;">
+                    <IMG src="img/{LMSGponDasanPlugin::PLUGIN_DIRECTORY_NAME}/gpononu.gif" ALT=""> <span class="bold">{trans("Name")} / {trans("Profile")} / {trans("Model")}:</span><BR>
+                    <IMG src="img/home.gif" ALT=""> {trans("Location:")}
+                    <br>{trans("ONU description:")}
+                </TD>
+                <TD class="fleftu" style="border-left:0px; width: 10%;">
+                    &nbsp;
+                </TD>
+                <TD class="fleftu" style="border-left:0px; width: 10%;">
+                    <img src="img/{LMSGponDasanPlugin::PLUGIN_DIRECTORY_NAME}/gponolt.gif" ALT=""> <A href="?m=gpondasanonulist&o=gponolt{if $listdata.direction == "asc" && $listdata.order == "gponolt"},desc{/if}">OLT</A>{if $listdata.order == "gponolt"} <IMG SRC="img/{if $listdata.direction == "desc"}asc{else}desc{/if}_order.gif" alt="">{/if}
+                </TD>
+                <TD class="fbt text-right nobr" style="width: 1%;">
+                    {trans("ID:")}<br>
+                    <IMG src="img/{LMSGponDasanPlugin::PLUGIN_DIRECTORY_NAME}/gpononu_takenports.gif" ALT=""> {trans("ONU ID:")}
+                </TD>
+                <TD class="fbt nobr" style="width: 1%;">
+                    <IMG src="img/port.gif" ALT=""> {trans("ONU Port Count:")}
+                </TD>
+                <TD class="frightu" style="width: 1%;">
+                    &nbsp;
+                </TD>
+            </TR>
+            {cycle values="light,lucid" print=false}
+            {foreach $gpondasanonus as $netdev}
+            <TR class="{cycle advance=false} highlight">
+                <TD style="width: 57%;" onClick="return self.location.href='?m=gpondasanonuinfo&id={$netdev.id}';" class="valign-top nobr">
+                    <IMG src="img/{LMSGponDasanPlugin::PLUGIN_DIRECTORY_NAME}/gpononu.gif" ALT=""> <a name="{$netdev.id}">
+                    <B>{$netdev.name} {if $netdev.producer}/ {$netdev.producer}{/if} {if $netdev.model}/ {$netdev.model}{/if}</B></A><BR>
+                    <IMG src="img/home.gif" ALT=""> {$netdev.location}
+                    <br>{if $netdev.onudescription}{$netdev.onudescription}{/if}
+                </TD>
+                <TD style="width: 10%; border-left: 0px;" class="valign-top text-center nobr">
+                    {if $netdev.gponoltnetdevicesid gt 0}
+                    <input type="button" value="{trans("Show parameters")}" id="pokaz_parametry_{$netdev.id}" OnClick="xajax_ONU_get_param_Xj({$netdev.gponoltid},{$netdev.gponoltnumport},{$netdev.onuid},{$netdev.id},'{$netdev.name}');">
+                    {/if}
+                </TD>
+                <TD style="width: 30%; border-left: 0px;" class="valign-top nobr">
+                    {if $netdev.gponoltnetdevicesid gt 0}
+                    <A href="?m=gpondasanoltinfo&id={$netdev.gponoltnetdevicesid}"><img src="img/{LMSGponDasanPlugin::PLUGIN_DIRECTORY_NAME}/gponolt.gif" ALT=""> {$netdev.gponolt}</A><br>
+                    {trans("OLT Port:")} <span class="bold">{if $netdev.gponoltnumportf}{$netdev.gponoltnumportf}{else}{$netdev.gponoltnumport}{/if}, {$netdev.onuid}</span>
+                    {/if}
+                </TD>
+                <TD style="width: 1%;" class="text-right nobr" onClick="return self.location.href='?m=gpondasanonuinfo&id={$netdev.id}';">
+                    <IMG src="img/empty.gif" height="16"><BR>
+                    ({$netdev.id|string_format:"%04d"})
+                    <br>
+                    <span class="bold">{$netdev.onuid}</span>
+                </TD>
+                <TD style="width: 1%;" onClick="return self.location.href='?m=gpondasanonuinfo&id={$netdev.id}';" class="nobr">
+                    <BR><IMG SRC="img/port.gif" ALT=""> {$netdev.ports}
+                </TD>
+                <TD style="width: 1%;" class="fright text-right nobr">
+                    <a href="?m=gpondasanonuedit&id={$netdev.id}"><IMG src="img/edit.gif" alt="[ {trans("Edit")} ]" title="[ {trans("Edit")} ]"></A>
+                    <a href="?m=gpondasanonuinfo&id={$netdev.id}"><IMG src="img/info.gif" alt="[ {trans("Info")} ]" title="[ {trans("Info")} ]"></A>
+                </TD>
+            </TR>
+            <TR class="{cycle}">
+                <TD colspan="6" class="text-center" id="ONU_param_{$netdev.id}"></TD>
+            </TR>
+            {foreachelse}
+            <TR>
+                <TD colspan="6" class="empty-table">
+                    <P>{trans("No such connected devices.")}</P>
+                </TD>
+            </TR>
+            {/foreach}
+        </TABLE>
+    </TD>
+</TR>
+</TBODY>
+</TABLE>
+
+
+<script type="text/javascript">
+    <!--
+    let searchParams = new URLSearchParams(window.location.search);
+
+    let $omiCustomerId = null;
+
+    if(searchParams.has('id')){
+        $omiCustomerId = searchParams.get('id');
+    }
+
+    let $omiOMToken = '{$omioltmanagertoken}';
+    let $omiOMUrl = '{$omioltmanagerurl}';
+
+    let $omiOnuId = null;
+
+    let $omiParams = '{$omioltmanagerparams}';
+    //-->
+
+</script>
+
+{literal}
+<script type="text/javascript">
+    function getOnuCollection(customerID, token, url)
+    {
+        runQuery(customerID, token, url);
+    }
+
+    function parseToSend(data, id) {
+        return JSON.stringify({
+            query: data,
+            variables: {
+                "id": '/api/customers/' + id,
+            }
+        });
+    }
+
+    function sendAjaxRequest(method, url, data, contentType, token) {
+        $.ajax({
+            method: method,
+            url: url,
+            headers: {
+                'X-AUTH-TOKEN': token
+            },
+            data: data,
+            contentType: contentType,
+            success: function (data) {
+                injectToLMS(data);
+            },
+        });
+    }
+
+    let superQuery = `query ($id: ID!){
+                customer(id: $id) {
+                    devices {
+                      edges {
+                        node {
+                          onuDeviceConnection {
+                            onu {
+                              id
+                              lastOnuSignal {
+                                upOltRx
+                                downOnuRx
+                                dateTime
+                              }
+                              lastStatus {
+                                level
+                                levelName
+                                value
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                    networkDevices {
+                      edges {
+                        node {
+                          onuDeviceConnection {
+                            onu {
+                              id
+                              lastOnuSignal {
+                                upOltRx
+                                downOnuRx
+                                dateTime
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                    }
+                }`;
+
+    function runQuery(id, token, $url) {
+        $fullUrl = $url + '/api/graphql';
+        sendAjaxRequest("POST", $fullUrl, parseToSend(superQuery, parseInt(id)), 'application/json', token);
+    }
+
+    function injectToLMS(result)
+    {
+        console.log(result);
+
+
+    }
+</script>
+{/literal}
+
+
+<script type="text/javascript">
+    (function ($) {
+        $(document).ready(function () {
+            if($omiCustomerId && $omiOMToken && $omiOMUrl){
+                getOnuCollection($omiCustomerId, $omiOMToken, $omiOMUrl);
+            }
+        });
+    })(jQuery);
+</script>

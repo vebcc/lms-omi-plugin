@@ -53,6 +53,10 @@ class LMSOmiPlugin extends LMSPlugin
                 'class' => 'OmiNetDevHandler',
                 'method' => 'netDevInfoBeforeDisplay'
             ],
+            'customerinfo_before_display' => [
+                'class' => 'OmiCustomerHandler',
+                'method' => 'customerInfoBeforeDisplay'
+            ],
         ];
     }
 }

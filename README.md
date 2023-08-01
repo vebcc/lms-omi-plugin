@@ -28,6 +28,8 @@ https://github.com/vebcc/lms-omi-plugin/releases
 w głównym katalogu LMS. W przypadku, gdy zgodnie z konfiguracją lms.ini, folder plugins znajduje
 - się np. w "/usr/share/lms/plugins" należy skopiować wtyczkę do tego folderu. W specyficznych
 przypadkach należy wrzucić wtyczkę do obydwóch lokalizacji.
+- Tworzymy dowiązanie symboliczne w katalogu img LMS-a o nazwie LMSOmiPlugin do katalogu ../plugins/LMSOmiPlugin/img.
+  np. ln -s /var/www/html/plugins/LMSOmiPlugin/img /var/www/html/img/LMSOmiPlugin
 - Przechodzimy do głównego katalogu, w którym jest zainstalowany LMS np. "/var/www/html/lms"
 i wykonujemy polecenie: 
 >./composer update --no-dev -n
