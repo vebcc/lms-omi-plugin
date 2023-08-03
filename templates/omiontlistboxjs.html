@@ -188,7 +188,10 @@
         $("span.onu-counter-span").html($onuCollection.length);
 
         changesTable = $("div#super-omi-table");
-        //changesTable.html('');
+
+        if($onuCollection.length === 0){
+            changesTable.append("<div class=\"lms-ui-tab-table-row\"><span>Brak dopisanych urządzeń ONU!</span></div>");
+        }
 
 
         $onuCollection.forEach(element => {
@@ -262,15 +265,18 @@
                     runQuery(data['id'], token, url);
                 }
             },
-            /*error: function (xhr, status, error) {
-                console.log(error);
-            }*/
+            error: function (xhr, status, error) {
+                if(error === 'Not Found'){
+                    $("div#super-omi-table").append("<div class=\"lms-ui-tab-table-row\"><span style='font-size: larger'>Brak dopisanych urządzeń ONU.</span></div>");
+                }else{
+                    console.log(status);
+                    console.log(error);
+                }
+            }
         });
     }
 
     function timeAgo (date) {
-
-        console.log(date);
         const seconds = Math.floor((new Date() - date) / 1000);
 
         let interval = Math.floor(seconds / 31536000);
