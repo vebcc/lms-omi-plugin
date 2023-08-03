@@ -205,7 +205,7 @@
             let typeReported = element['typeReported'] ? element['typeReported']['name'] : type;
             let lastPhysicalStatusName = element['lastOnuBasicPhysicalStatus'] ? element['lastOnuBasicPhysicalStatus']['cause']['value'] : '';
             let lastPhysicalStatusLevel = element['lastOnuBasicPhysicalStatus'] ? element['lastOnuBasicPhysicalStatus']['cause']['level'] : '';
-            let lastPhysicalStatusTime = element['lastOnuBasicOnlineStatus'] ? element['lastOnuBasicPhysicalStatus']['datetime'] : '';
+            let lastPhysicalStatusTime = element['lastOnuBasicPhysicalStatus'] ? element['lastOnuBasicPhysicalStatus']['datetime'] : '';
             let lastOnlineStatusName = element['lastOnuBasicOnlineStatus'] ? element['lastOnuBasicOnlineStatus']['cause']['value'] : '';
             let lastOnlineStatusLevel = element['lastOnuBasicOnlineStatus'] ? element['lastOnuBasicOnlineStatus']['cause']['level'] : '';
             let lastOnlineStatusTime = element['lastOnuBasicOnlineStatus'] ? element['lastOnuBasicOnlineStatus']['datetime'] : '';
