@@ -212,6 +212,7 @@
 
             let locationAddress = element['locationAddress'] ? element['locationAddress']['city'] + ' ' + element['locationAddress']['street'] + ' ' + element['locationAddress']['house'] : '';
 
+            let statusPhysicalTimeAgo = timeAgo(new Date(Date.parse(lastPhysicalStatusTime)));
 
             changesTable.append("<div class=\"lms-ui-tab-table-row\" data-target-url=\"" + $omiOMUrl + "/onu/" + onuId + $omiParams + "\">\n" +
                 "                <div class=\"lms-ui-tab-table-wrapper col-5\">\n" +
@@ -229,8 +230,8 @@
                 "                    </div>\n" +
                 "                    <div class=\"lms-ui-tab-table-wrapper col-2\">\n" +
                 "                        <div class=\"lms-ui-tab-table-column id\">\n" +
-                "                            <span class=\"status-color-general status-color-level-" + lastPhysicalStatusLevel + "\">" + lastPhysicalStatusName + "</span>" +
-                "                            <br>\n" +
+                "                            <span class=\"status-color-general status-color-level-" + lastPhysicalStatusLevel + "\">" + lastPhysicalStatusName + "</span>"+ ' (' + statusPhysicalTimeAgo +
+                "                            )<br>\n" +
                 "                            <span class=\"status-color-general status-color-level-" + lastOnlineStatusLevel + "\">" + lastOnlineStatusName + "</span>" +
                 "                        </div>\n" +
                 "                        <div class=\"lms-ui-tab-table-column id\">\n" +
@@ -266,6 +267,44 @@
             }*/
         });
     }
+
+    function timeAgo (date) {
+
+        console.log(date);
+        const seconds = Math.floor((new Date() - date) / 1000);
+
+        let interval = Math.floor(seconds / 31536000);
+        if (interval > 1) {
+            return interval + ' lat temu';
+        }
+
+        interval = Math.floor(seconds / 2592000);
+        if (interval > 4) {
+            return interval + ' miesięcy temu';
+        }
+        if (interval > 1) {
+            return interval + ' miesiące temu';
+        }
+
+        interval = Math.floor(seconds / 86400);
+        if (interval > 1) {
+            return interval + ' dni temu';
+        }
+
+        interval = Math.floor(seconds / 3600);
+        if (interval > 1) {
+            return interval + ' godzin temu';
+        }
+
+        interval = Math.floor(seconds / 60);
+        if (interval > 1) {
+            return interval + ' minut temu';
+        }
+
+        if(seconds < 10) return 'teraz';
+
+        return Math.floor(seconds) + ' sekund temu';
+    };
 
 </script>
 {/literal}
