@@ -238,14 +238,16 @@
                 "                            <span class=\"status-color-general status-color-level-" + lastOnlineStatusLevel + "\">" + lastOnlineStatusName + "</span>" +
                 "                        </div>\n" +
                 "                        <div class=\"lms-ui-tab-table-column id\">\n" +
-                "                            " + lastOnuSignalOnu + "(dbi)" +
+                "                            <span class='signal-color-general onu-signal-value'>" + parseFloat(lastOnuSignalOnu).toFixed(2) + "</span>(dbi)" +
                 "                            <br>\n" +
-                "                            " + lastOnuSignalOlt + "(dbi)" +
+                "                            <span class='signal-color-general olt-signal-value'>" + parseFloat(lastOnuSignalOlt).toFixed(2) + "</span>(dbi)" +
                 "                        </div>\n" +
                 "                    </div>\n" +
                 "                </div>\n" +
                 "            </div>");
         });
+
+        updateSignals();
 
     }
 
@@ -310,7 +312,63 @@
         if(seconds < 10) return 'teraz';
 
         return Math.floor(seconds) + ' sekund temu';
-    };
+    }
+
+    function updateSignals() {
+
+        let url1 = $omiOMUrl + '/setting/by_name/signal_value_to_alarm';
+        let url2 = $omiOMUrl + '/setting/by_name/olt_signal_value_to_alarm';
+
+        $.ajax({
+            method: 'GET',
+            url: url1,
+            headers: {
+                'X-AUTH-TOKEN': $omiOMToken
+            },
+            data: '',
+            contentType: 'application/json',
+            success: function (data) {
+                if(data['value']){
+                    $('.onu-signal-value').each(function() {
+                        var currentValue = parseFloat($(this).text());
+
+                        if (currentValue < data['value']) {
+                            $(this).css('color', 'red');
+                            $(this).text(currentValue.toFixed(2));
+                        }else{
+                            $(this).css('color', 'green');
+                        }
+                    });
+                }
+            },
+        });
+
+        $.ajax({
+            method: 'GET',
+            url: url2,
+            headers: {
+                'X-AUTH-TOKEN': $omiOMToken
+            },
+            data: '',
+            contentType: 'application/json',
+            success: function (data) {
+                if(data['value']){
+                    $('.olt-signal-value').each(function() {
+                        var currentValue = parseFloat($(this).text());
+
+                        if (currentValue < data['value']) {
+                            $(this).css('color', 'red');
+                            $(this).text(currentValue.toFixed(2));
+                        }else{
+                            $(this).css('color', 'green');
+                        }
+                    });
+                }
+            },
+        });
+
+
+    }
 
 </script>
 {/literal}
