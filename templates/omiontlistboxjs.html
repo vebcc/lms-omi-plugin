@@ -1,0 +1,271 @@
+{literal}
+<script type="text/javascript">
+
+    function getOnuCollection(customerID, token, url) {
+        runRequest(customerID, token, url);
+    }
+
+    function parseToSend(data, id) {
+        return JSON.stringify({
+            query: data,
+            variables: {
+                "id": '/api/customers/' + id,
+            }
+        });
+    }
+
+    function sendAjaxRequest(method, url, data, contentType, token) {
+        $.ajax({
+            method: method,
+            url: url,
+            headers: {
+                'X-AUTH-TOKEN': token
+            },
+            data: data,
+            contentType: contentType,
+            success: function (data) {
+                injectToLMS(data);
+            },
+        });
+    }
+
+    let superQuery = `query ($id: ID!){
+                customer(id: $id) {
+                    devices {
+                      edges {
+                        node {
+                          onuDeviceConnection {
+                            onu {
+                              id
+                              oltCardSlot{
+                                oltCard {
+                                  olt {
+                                    name
+                                    shortName
+                                  }
+                                }
+                              }
+                              address
+                              macAddress
+                              serial
+                              hardwareVersion
+                              softwareVersion
+                              firmwareVersion
+                              typeReported {
+                                name
+                              }
+                              type {
+                                name
+                              }
+                              lastOnuSignal {
+                                upOltRx
+                                downOnuRx
+                                dateTime
+                              }
+                              lastOnuBasicPhysicalStatus {
+                                cause {
+                                  level
+                                  levelName
+                                  value
+                                }
+                                datetime
+                              }
+                              lastOnuBasicOnlineStatus {
+                                cause {
+                                  level
+                                  levelName
+                                  value
+                                }
+                                datetime
+                              }
+                              locationAddress{
+                                city
+                                street
+                                house
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                    networkDevices {
+                      edges {
+                        node {
+                          onuDeviceConnection {
+                            onu {
+                              id
+                              oltCardSlot{
+                                oltCard {
+                                  olt {
+                                    name
+                                    shortName
+                                  }
+                                }
+                              }
+                              address
+                              macAddress
+                              serial
+                              hardwareVersion
+                              softwareVersion
+                              firmwareVersion
+                              typeReported {
+                                name
+                              }
+                              type {
+                                name
+                              }
+                              lastOnuSignal {
+                                upOltRx
+                                downOnuRx
+                                dateTime
+                              }
+                              lastOnuBasicPhysicalStatus {
+                                cause {
+                                  level
+                                  levelName
+                                  value
+                                }
+                                datetime
+                              }
+                              lastOnuBasicOnlineStatus {
+                                cause {
+                                  level
+                                  levelName
+                                  value
+                                }
+                                datetime
+                              }
+                              locationAddress{
+                                city
+                                street
+                                house
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                    }
+                }`;
+
+    function runQuery(id, token, $url) {
+        $fullUrl = $url + '/api/graphql';
+        sendAjaxRequest("POST", $fullUrl, parseToSend(superQuery, parseInt(id)), 'application/json', token);
+    }
+
+    function injectToLMS(result) {
+
+        console.log(result);
+
+        if (!result['data']) {
+            return;
+        }
+
+        if (!result['data']['customer']) {
+            return;
+        }
+
+        let $onuCollection = [];
+
+        result['data']['customer']['networkDevices']['edges'].forEach(element => $onuCollection.push(element['node']['onuDeviceConnection']['onu']));
+        result['data']['customer']['devices']['edges'].forEach(element => {
+
+            $onuId = element['node']['onuDeviceConnection']['onu']['id'];
+            $exists = false;
+
+            $onuCollection.forEach(onu => {
+                if (onu['id'] === $onuId) {
+                    $exists = true;
+                }
+            })
+
+            if (!$exists) {
+                $onuCollection.push(element['node']['onuDeviceConnection']['onu']);
+            }
+
+        });
+
+        $("span.onu-counter-span").html($onuCollection.length);
+
+        changesTable = $("div#super-omi-table");
+        //changesTable.html('');
+
+
+        $onuCollection.forEach(element => {
+
+            let onuAddress = element['oltCardSlot']['oltCard']['olt']['shortName'] + '_' + element['address'];
+
+            let onuId = element['id'].split('/')[3];
+            let macAddress = element['macAddress'] ? element['macAddress'] : '';
+            let serialNumber = element['serial'] ? "(" + element['serial'] + ")" : '';
+            let type = element['type'] ? element['type']['name'] : '';
+            let typeReported = element['typeReported'] ? element['typeReported']['name'] : type;
+            let lastPhysicalStatusName = element['lastOnuBasicPhysicalStatus'] ? element['lastOnuBasicPhysicalStatus']['cause']['value'] : '';
+            let lastPhysicalStatusLevel = element['lastOnuBasicPhysicalStatus'] ? element['lastOnuBasicPhysicalStatus']['cause']['level'] : '';
+            let lastPhysicalStatusTime = element['lastOnuBasicOnlineStatus'] ? element['lastOnuBasicPhysicalStatus']['datetime'] : '';
+            let lastOnlineStatusName = element['lastOnuBasicOnlineStatus'] ? element['lastOnuBasicOnlineStatus']['cause']['value'] : '';
+            let lastOnlineStatusLevel = element['lastOnuBasicOnlineStatus'] ? element['lastOnuBasicOnlineStatus']['cause']['level'] : '';
+            let lastOnlineStatusTime = element['lastOnuBasicOnlineStatus'] ? element['lastOnuBasicOnlineStatus']['datetime'] : '';
+
+            let lastOnuSignalOnu = element['lastOnuSignal'] ? element['lastOnuSignal']['downOnuRx'] : '';
+            let lastOnuSignalOlt = element['lastOnuSignal'] ? element['lastOnuSignal']['upOltRx'] : '';
+
+            let locationAddress = element['locationAddress'] ? element['locationAddress']['city'] + ' ' + element['locationAddress']['street'] + ' ' + element['locationAddress']['house'] : '';
+
+
+            changesTable.append("<div class=\"lms-ui-tab-table-row\" data-target-url=\"" + $omiOMUrl + "/onu/" + onuId + $omiParams + "\">\n" +
+                "                <div class=\"lms-ui-tab-table-wrapper col-5\">\n" +
+                "                    <div class=\"lms-ui-tab-table-wrapper col-2\">\n" +
+                "                        <div class=\"lms-ui-tab-table-column name\">\n" +
+                "                            <strong>" + onuAddress + "</strong>\n" +
+                "                            <br> " + locationAddress +
+                "                        </div>\n" +
+                "                        <div class=\"lms-ui-tab-table-column description\">\n" +
+                "                            " + macAddress + "<br>" + serialNumber +
+                "                        </div>\n" +
+                "                    </div>\n" +
+                "                    <div class=\"lms-ui-tab-table-column id\">\n" +
+                "                        " + typeReported +
+                "                    </div>\n" +
+                "                    <div class=\"lms-ui-tab-table-wrapper col-2\">\n" +
+                "                        <div class=\"lms-ui-tab-table-column id\">\n" +
+                "                            <span class=\"status-color-general status-color-level-" + lastPhysicalStatusLevel + "\">" + lastPhysicalStatusName + "</span>" +
+                "                            <br>\n" +
+                "                            <span class=\"status-color-general status-color-level-" + lastOnlineStatusLevel + "\">" + lastOnlineStatusName + "</span>" +
+                "                        </div>\n" +
+                "                        <div class=\"lms-ui-tab-table-column id\">\n" +
+                "                            " + lastOnuSignalOnu + "(dbi)" +
+                "                            <br>\n" +
+                "                            " + lastOnuSignalOlt + "(dbi)" +
+                "                        </div>\n" +
+                "                    </div>\n" +
+                "                </div>\n" +
+                "            </div>");
+        });
+
+    }
+
+    function runRequest(customerID, token, url) {
+        let url1 = url + '/customer/lms/' + customerID;
+
+        $.ajax({
+            method: 'GET',
+            url: url1,
+            headers: {
+                'X-AUTH-TOKEN': token
+            },
+            data: '',
+            contentType: 'application/json',
+            success: function (data) {
+                if (data['id']) {
+                    runQuery(data['id'], token, url);
+                }
+            },
+            /*error: function (xhr, status, error) {
+                console.log(error);
+            }*/
+        });
+    }
+
+</script>
+{/literal}
