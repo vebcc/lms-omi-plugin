@@ -45,7 +45,7 @@ class OmiInitHandler
         $menu_omi = [
             'omi' => [
                 'name' => 'OltManager',
-                'img' => '/producer.gif',
+                'img' => 'LMSOmiPlugin/olt_manager.ico',
                 'link' => ConfigHelper::getConfig('omi.olt_manager_url', '?m=omideviceerrorlist'),
                 'tip' => trans('OltManager integration'),
                 'accesskey' =>'k',
