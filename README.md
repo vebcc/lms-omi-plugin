@@ -10,6 +10,10 @@ Wtyczka dodatkowo zapewnia możliwość szybkiego przejścia do systemu OltManag
 bezpośrednio z Node i NetDev przez dodanie przycisku, który kieruje bezpośrednio
 na zsynchronizowane Onu.
 
+W sekcji Customer został dodany dodatkowy panel, który wyświetla podstawowe informacje
+o wszystkich urządzeniach klienta, które są zsynchronizowane z systemem OltManager.
+Podejrzeć możemy informacje takie jak: adres, mac, serial, status, sygnał, model, czy czas pracy.
+
 Bez systemu OltManager wtyczka może służyć wyłącznie jako rozszerzenie API LMS.
 Należy pamiętać o poprawnej konfiguracji po stronie systemu OltManager. Bez synchronizacji
 po stronie OM, żadne przyciski w Node, i NetDev nie będą wyświetlane. Synchronizacja
