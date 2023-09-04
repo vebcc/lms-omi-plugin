@@ -188,7 +188,10 @@
         $("span.onu-counter-span").html($onuCollection.length);
 
         changesTable = $("div#super-omi-table");
-        //changesTable.html('');
+
+        if($onuCollection.length === 0){
+            changesTable.append("<div class=\"lms-ui-tab-table-row\"><span>Brak dopisanych urządzeń ONU!</span></div>");
+        }
 
 
         $onuCollection.forEach(element => {
@@ -202,7 +205,7 @@
             let typeReported = element['typeReported'] ? element['typeReported']['name'] : type;
             let lastPhysicalStatusName = element['lastOnuBasicPhysicalStatus'] ? element['lastOnuBasicPhysicalStatus']['cause']['value'] : '';
             let lastPhysicalStatusLevel = element['lastOnuBasicPhysicalStatus'] ? element['lastOnuBasicPhysicalStatus']['cause']['level'] : '';
-            let lastPhysicalStatusTime = element['lastOnuBasicOnlineStatus'] ? element['lastOnuBasicPhysicalStatus']['datetime'] : '';
+            let lastPhysicalStatusTime = element['lastOnuBasicPhysicalStatus'] ? element['lastOnuBasicPhysicalStatus']['datetime'] : '';
             let lastOnlineStatusName = element['lastOnuBasicOnlineStatus'] ? element['lastOnuBasicOnlineStatus']['cause']['value'] : '';
             let lastOnlineStatusLevel = element['lastOnuBasicOnlineStatus'] ? element['lastOnuBasicOnlineStatus']['cause']['level'] : '';
             let lastOnlineStatusTime = element['lastOnuBasicOnlineStatus'] ? element['lastOnuBasicOnlineStatus']['datetime'] : '';
@@ -235,14 +238,16 @@
                 "                            <span class=\"status-color-general status-color-level-" + lastOnlineStatusLevel + "\">" + lastOnlineStatusName + "</span>" +
                 "                        </div>\n" +
                 "                        <div class=\"lms-ui-tab-table-column id\">\n" +
-                "                            " + lastOnuSignalOnu + "(dbi)" +
+                "                            <span class='signal-color-general onu-signal-value'>" + parseFloat(lastOnuSignalOnu).toFixed(2) + "</span>(dbi)" +
                 "                            <br>\n" +
-                "                            " + lastOnuSignalOlt + "(dbi)" +
+                "                            <span class='signal-color-general olt-signal-value'>" + parseFloat(lastOnuSignalOlt).toFixed(2) + "</span>(dbi)" +
                 "                        </div>\n" +
                 "                    </div>\n" +
                 "                </div>\n" +
                 "            </div>");
         });
+
+        updateSignals();
 
     }
 
@@ -262,15 +267,18 @@
                     runQuery(data['id'], token, url);
                 }
             },
-            /*error: function (xhr, status, error) {
-                console.log(error);
-            }*/
+            error: function (xhr, status, error) {
+                if(error === 'Not Found'){
+                    $("div#super-omi-table").append("<div class=\"lms-ui-tab-table-row\"><span style='font-size: larger'>Brak dopisanych urządzeń ONU.</span></div>");
+                }else{
+                    console.log(status);
+                    console.log(error);
+                }
+            }
         });
     }
 
     function timeAgo (date) {
-
-        console.log(date);
         const seconds = Math.floor((new Date() - date) / 1000);
 
         let interval = Math.floor(seconds / 31536000);
@@ -304,7 +312,63 @@
         if(seconds < 10) return 'teraz';
 
         return Math.floor(seconds) + ' sekund temu';
-    };
+    }
+
+    function updateSignals() {
+
+        let url1 = $omiOMUrl + '/setting/by_name/signal_value_to_alarm';
+        let url2 = $omiOMUrl + '/setting/by_name/olt_signal_value_to_alarm';
+
+        $.ajax({
+            method: 'GET',
+            url: url1,
+            headers: {
+                'X-AUTH-TOKEN': $omiOMToken
+            },
+            data: '',
+            contentType: 'application/json',
+            success: function (data) {
+                if(data['value']){
+                    $('.onu-signal-value').each(function() {
+                        var currentValue = parseFloat($(this).text());
+
+                        if (currentValue < data['value']) {
+                            $(this).css('color', 'red');
+                            $(this).text(currentValue.toFixed(2));
+                        }else{
+                            $(this).css('color', 'green');
+                        }
+                    });
+                }
+            },
+        });
+
+        $.ajax({
+            method: 'GET',
+            url: url2,
+            headers: {
+                'X-AUTH-TOKEN': $omiOMToken
+            },
+            data: '',
+            contentType: 'application/json',
+            success: function (data) {
+                if(data['value']){
+                    $('.olt-signal-value').each(function() {
+                        var currentValue = parseFloat($(this).text());
+
+                        if (currentValue < data['value']) {
+                            $(this).css('color', 'red');
+                            $(this).text(currentValue.toFixed(2));
+                        }else{
+                            $(this).css('color', 'green');
+                        }
+                    });
+                }
+            },
+        });
+
+
+    }
 
 </script>
 {/literal}
