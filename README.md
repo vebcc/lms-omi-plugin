@@ -108,11 +108,27 @@ w module 'omideviceerrorlist'.
 - getMyToken - pobiera token zalogowanego użytkownika wykorzystywany do autoryzacji OM.
 - getUserTokens - pobiera tokeny wszystkich włączonych użytkowników systemu.
 - getMyLogin - pobiera login zalogowanego użytkownika.
+- getPPPoECredentials - pobiera dane do autoryzacji PPPoE. (Login, hasło)
+  Dodatkowe parametry:
+  - mac - Adres mac urządzenia dla którego pobieramy dane.
+    - upMacs - Ilość adresów mac powyżej wskazanego które sprawdzać
+    - downMacs - Ilość adresów mac poniżej wskazanego które sprawdzać
 
 >/?m=omidatagetter&type={functionName}{otherParams}
 
 Przykłady:
 >/?m=omidatagetter&type=getNetworkDeviceConnections
+
+>/?m=omidatagetter&type=getPPPoECredentials&mac=78:31:FF:27:FF:9A&upMacs=2&downMacs=2
+
+Podany przykład pobierze dane do autoryzacji PPPoE dla urządzenia o adresie mac 78:31:FF:27:FF:9A.
+Jeżeli nie znajdzie, sprawdzi również 2 adresy wyżej oraz 2 adresy niżej aż do natrafienia na sesję PPPoE.
+Czyli sprawdzane adresy to:
+- 78:31:FF:27:FF:9A
+- 78:31:FF:27:FF:9B
+- 78:31:FF:27:FF:9C
+- 78:31:FF:27:FF:99
+- 78:31:FF:27:FF:98
 
 {functionName} - nazwa funkcji w klasie LMS.
 W ten sposób możliwe jest uruchomienie dowolnej funkcji.
