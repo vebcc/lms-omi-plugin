@@ -7,6 +7,7 @@ require_once 'NetworkDeviceConnections/NetworkDeviceConnectionsProviderInterface
 require_once 'NetworkDeviceConnections/NetworkDeviceConnectionsByDescriptionProvider.php';
 require_once 'API.php';
 require_once 'DataProvider/UserProvider.php';
+require_once 'DataProvider/PPPoECredentialsProvider.php';
 
 class OMI
 {
@@ -39,6 +40,9 @@ class OMI
                 break;
             case 'getUserTokens':
                 $result = $this->getUserTokens();
+                break;
+            case 'getPPPoECredentials':
+                $result = $this->getPPPoECredentials($params);
                 break;
         }
 
@@ -91,6 +95,16 @@ class OMI
         }
 
         return $provider->getNetworkDeviceConnectionsWithError();
+    }
+
+    private function getPPPoECredentials(array $params = []): array
+    {
+        $pppoeCredentialsProvider = new PPPoECredentialsProvider();
+        $pppoeCredentials = $pppoeCredentialsProvider->getPPPoECredentials($params);
+        if (!$pppoeCredentials) {
+            return ['exception' => 'Cant get PPPoE credentials for your account', 'code' => 14];
+        }
+        return $pppoeCredentials;
     }
 
     public function getMyToken()
