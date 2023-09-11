@@ -50,9 +50,16 @@ class PPPoECredentialsProvider
                 continue;
             }
 
+            var_dump($node);
+
             return [
-                'username' => $node['name'],
-                'password' => $node['passwd'],
+                "username" => $node['name'],
+                "password" => $node['passwd'],
+                "vlan" => null,
+                "wifi" => [
+                    "ssid" => null,
+                    "password" => null,
+                ],
             ];
         }
         return null;
