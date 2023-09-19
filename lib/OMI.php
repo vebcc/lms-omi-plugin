@@ -97,7 +97,7 @@ class OMI
         return $provider->getNetworkDeviceConnectionsWithError();
     }
 
-    private function getPPPoECredentials(array $params = []): array
+    public function getPPPoECredentials(array $params = []): array
     {
         $pppoeCredentialsProvider = new PPPoECredentialsProvider();
         $pppoeCredentials = $pppoeCredentialsProvider->getPPPoECredentials($params);
