@@ -87,6 +87,8 @@ class NetworkDeviceConnectionsByDescriptionProvider implements NetworkDeviceConn
                 'name' => $node['name'],
                 'netDev' => $node['netdev'] ? (int)$node['netdev'] : null,
                 'netNode' => $node['netnodeid'] ? (int)$node['netnodeid'] : null,
+                'login' => $node['name'],
+                'password' => $node['passwd'],
                 'data' => [
                     'ip' => $node['ip'],
                     'mac' => $node['mac'],
