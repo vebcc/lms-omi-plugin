@@ -56,7 +56,8 @@ class NetworkDeviceConnectionsByDescriptionProvider implements NetworkDeviceConn
             $nodeCollection['totaloff'],
         );
 
-        foreach ($nodeCollection as $node) {
+        foreach ($nodeCollection as $baseNode) {
+            $node = $this->lms->GetNode($baseNode['id']);
             $address = $this->descriptionToAddressConverter->convert($node['info'], $onlyError);
             if ((!$address) || (!$onlyError && key_exists('error', $address)) || ($onlyError && !key_exists('error', $address))) {
                 continue;
