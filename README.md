@@ -75,24 +75,6 @@ przycisków. Należy pamiętać że przed włączeniem w LMS, należy włączyć
 w systemie OltManager.
 >omi.olt_manager_automatic_login
 
-Konfiguracja WIFI
->omi.wifi_prefix - przedrostek domyślnej nazwy wifi klienta
->omi.wifi_5_suffix - sufiks domyślnej nazwy wifi 5 klienta
-
-Domyślny VLAN internetu dla konfiguracji onu. Domyślnie null
->omi.net_vlan
-
-Domyślny VLAN tv dla konfiguracji onu. Domyślnie null
->omi.tv_vlan
-
-Domyślne porty na których konfigurować TV w onu, jeśli włączono. Domyślnie tylko port 4 onu "4".
-Podawać po przecinkach porty np. "3,4".
->omi.tv_ports
-
-Wyświetlaj dane konfiguracyjne urządzeń sieciowych (ACS support)
->omi.acs_view
-
-
 ## Uprawnienia
 Do poprawnej pracy OltManager'a należy utworzyć konto w systemie LMS i nadać mu
 uprawnienie 'omi_full_access'.
@@ -126,8 +108,7 @@ w module 'omideviceerrorlist'.
 - getMyToken - pobiera token zalogowanego użytkownika wykorzystywany do autoryzacji OM.
 - getUserTokens - pobiera tokeny wszystkich włączonych użytkowników systemu.
 - getMyLogin - pobiera login zalogowanego użytkownika.
-- getPPPoECredentials - pobiera dane do autoryzacji PPPoE. (Login, hasło, dodatkowo pozwala pobierać dodatkową
-konfigurację związaną z onu taką jak: konfiguracja vlan, konfiguracja wifi, konfiguracja tv)
+- getPPPoECredentials - pobiera dane do autoryzacji PPPoE. (Login, hasło)
   Dodatkowe parametry:
   - mac - Adres mac urządzenia dla którego pobieramy dane.
     - upMacs - Ilość adresów mac powyżej wskazanego które sprawdzać
@@ -168,10 +149,3 @@ LMS. Bez podania tego parametru wykonywane są funkcje z klasy API wtyczki.
 Przykłady:
 >/?m=omiapidatagetter&type=GetNetDevList
 >/?m=omiapidatagetter&lmsDirect=1&type=GetNetDevList&argorder=name,desc
-
-### LMS jako dostawca danych dla GenieACS
-
-Adresy url do zarządzania w lms w sekcji nodeinfo pozwalają na dodatkową konfigurację
-urządzeń.
-
-
