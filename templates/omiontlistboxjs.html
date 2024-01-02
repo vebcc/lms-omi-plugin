@@ -83,6 +83,7 @@
                                 street
                                 house
                               }
+                              deleted
                             }
                           }
                         }
@@ -195,6 +196,10 @@
 
 
         $onuCollection.forEach(element => {
+            if(element['deleted']){
+                return;
+            }
+
 
             let onuAddress = element['oltCardSlot']['oltCard']['olt']['shortName'] + '_' + element['address'];
 
@@ -213,7 +218,18 @@
             let lastOnuSignalOnu = element['lastOnuSignal'] ? element['lastOnuSignal']['downOnuRx'] : '';
             let lastOnuSignalOlt = element['lastOnuSignal'] ? element['lastOnuSignal']['upOltRx'] : '';
 
-            let locationAddress = element['locationAddress'] ? element['locationAddress']['city'] + ' ' + element['locationAddress']['street'] + ' ' + element['locationAddress']['house'] : '';
+            let locationAddress = "";
+            if(element['locationAddress']){
+                if(element['locationAddress']['city']){
+                    locationAddress += element['locationAddress']['city'] + ' ';
+                }
+                if(element['locationAddress']['street']){
+                    locationAddress += element['locationAddress']['street'] + ' ';
+                }
+                if(element['locationAddress']['house']){
+                    locationAddress += element['locationAddress']['house'];
+                }
+            }
 
             let statusPhysicalTimeAgo = timeAgo(new Date(Date.parse(lastPhysicalStatusTime)));
 
