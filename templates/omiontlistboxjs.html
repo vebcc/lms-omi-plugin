@@ -168,22 +168,26 @@
 
         let $onuCollection = [];
 
-        result['data']['customer']['networkDevices']['edges'].forEach(element => $onuCollection.push(element['node']['onuDeviceConnection']['onu']));
-        result['data']['customer']['devices']['edges'].forEach(element => {
-
-            $onuId = element['node']['onuDeviceConnection']['onu']['id'];
-            $exists = false;
-
-            $onuCollection.forEach(onu => {
-                if (onu['id'] === $onuId) {
-                    $exists = true;
-                }
-            })
-
-            if (!$exists) {
+        result['data']['customer']['networkDevices']['edges'].forEach(element => {
+            if(element['node']['onuDeviceConnection']){
                 $onuCollection.push(element['node']['onuDeviceConnection']['onu']);
             }
+        });
+        result['data']['customer']['devices']['edges'].forEach(element => {
+            if(element['node']['onuDeviceConnection']){
+                $onuId = element['node']['onuDeviceConnection']['onu']['id'];
+                $exists = false;
 
+                $onuCollection.forEach(onu => {
+                    if (onu['id'] === $onuId) {
+                        $exists = true;
+                    }
+                })
+
+                if (!$exists) {
+                    $onuCollection.push(element['node']['onuDeviceConnection']['onu']);
+                }
+            }
         });
 
         $("span.onu-counter-span").html($onuCollection.length);
