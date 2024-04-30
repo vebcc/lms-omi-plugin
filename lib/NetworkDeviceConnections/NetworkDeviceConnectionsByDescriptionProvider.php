@@ -83,6 +83,8 @@ class NetworkDeviceConnectionsByDescriptionProvider implements NetworkDeviceConn
                 ];
             }
 
+            //var_dump($node);
+
             $device = [
                 'lmsId' => $node['id'] ? (int)$node['id'] : null,
                 'name' => $node['name'],
@@ -99,8 +101,8 @@ class NetworkDeviceConnectionsByDescriptionProvider implements NetworkDeviceConn
                 ],
                 'owner' => $owner,
                 'address' => [
-                    'cityIdent' => (int)$node['city_ident'],
-                    'streetIdent' => (int)$node['street_ident'],
+                    'cityIdent' => (int)$node['location_city'],
+                    'streetIdent' => (int)$node['location_street'],
                     'location_house' => $node['location_house'],
                     'longitude' => $node['longitude'],
                     'latitude' => $node['latitude'],
