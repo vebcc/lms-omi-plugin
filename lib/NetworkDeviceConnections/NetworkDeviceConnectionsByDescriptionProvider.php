@@ -30,6 +30,9 @@ class NetworkDeviceConnectionsByDescriptionProvider implements NetworkDeviceConn
         $onuDeviceConnections = $this->includeDevices($onuDeviceConnections);
         $onuDeviceConnections = $this->includeNetworkDevices($onuDeviceConnections);
 
+        var_dump(count($onuDeviceConnections));
+        die();
+
         return $onuDeviceConnections;
     }
 
@@ -56,8 +59,8 @@ class NetworkDeviceConnectionsByDescriptionProvider implements NetworkDeviceConn
             $nodeCollection['totaloff'],
         );
 
-        foreach ($nodeCollection as $baseNode) {
-            $node = $this->lms->GetNode($baseNode['id']);
+        foreach ($nodeCollection as $node) {
+            $fullNode = $this->lms->GetNode($node['id']);
             $address = $this->descriptionToAddressConverter->convert($node['info'], $onlyError);
             if ((!$address) || (!$onlyError && key_exists('error', $address)) || ($onlyError && !key_exists('error', $address))) {
                 continue;
@@ -83,15 +86,13 @@ class NetworkDeviceConnectionsByDescriptionProvider implements NetworkDeviceConn
                 ];
             }
 
-            //var_dump($node);
-
             $device = [
                 'lmsId' => $node['id'] ? (int)$node['id'] : null,
                 'name' => $node['name'],
                 'netDev' => $node['netdev'] ? (int)$node['netdev'] : null,
                 'netNode' => $node['netnodeid'] ? (int)$node['netnodeid'] : null,
-                'login' => $node['name'],
-                'password' => $node['passwd'],
+                'login' => $fullNode['name'],
+                'password' => $fullNode['passwd'],
                 'data' => [
                     'ip' => $node['ip'],
                     'mac' => $node['mac'],
@@ -101,8 +102,8 @@ class NetworkDeviceConnectionsByDescriptionProvider implements NetworkDeviceConn
                 ],
                 'owner' => $owner,
                 'address' => [
-                    'cityIdent' => (int)$node['location_city'],
-                    'streetIdent' => (int)$node['location_street'],
+                    'cityIdent' => (int)$node['city_ident'],
+                    'streetIdent' => (int)$node['street_ident'],
                     'location_house' => $node['location_house'],
                     'longitude' => $node['longitude'],
                     'latitude' => $node['latitude'],
