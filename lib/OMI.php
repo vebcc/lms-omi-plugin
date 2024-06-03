@@ -1,5 +1,9 @@
 <?php
 
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 set_include_path(PLUGINS_DIR . DIRECTORY_SEPARATOR . LMSOmiPlugin::PLUGIN_DIRECTORY_NAME
     . DIRECTORY_SEPARATOR . 'lib' . PATH_SEPARATOR . get_include_path());
 
@@ -8,6 +12,8 @@ require_once 'NetworkDeviceConnections/NetworkDeviceConnectionsByDescriptionProv
 require_once 'API.php';
 require_once 'DataProvider/UserProvider.php';
 require_once 'DataProvider/PPPoECredentialsProvider.php';
+require_once 'DataProvider/DeviceProvider.php';
+require_once 'DataProvider/NetworkDeviceProvider.php';
 
 class OMI
 {
@@ -43,6 +49,12 @@ class OMI
                 break;
             case 'getPPPoECredentials':
                 $result = $this->getPPPoECredentials($params);
+                break;
+            case 'getDevices':
+                $result = $this->getDevices();
+                break;
+            case 'getNetworkDevices':
+                $result = $this->getNetworkDevices();
                 break;
         }
 
@@ -137,5 +149,25 @@ class OMI
             return ['exception' => 'Cant get login for your account', 'code' => 12];
         }
         return $userLogin;
+    }
+
+    public function getDevices(): array
+    {
+        $deviceProvider = new DeviceProvider();
+        $devices = $deviceProvider->getDevices();
+        if (!$devices) {
+            return ['exception' => 'Cant get devices', 'code' => 15];
+        }
+        return $devices;
+    }
+
+    public function getNetworkDevices(): array
+    {
+        $networkDeviceProvider = new NetworkDeviceProvider();
+        $networkDevices = $networkDeviceProvider->getNetworkDevices();
+        if (!$networkDevices) {
+            return ['exception' => 'Cant get networkDevices', 'code' => 16];
+        }
+        return $networkDevices;
     }
 }
