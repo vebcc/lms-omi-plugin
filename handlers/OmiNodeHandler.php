@@ -14,7 +14,7 @@ class OmiNodeHandler
     {
         $params = "";
         $omi = LMSOmiPlugin::getOmiInstance();
-        $isAutomaticLoginEnabled = ConfigHelper::getConfig('omi.olt_manager_automatic_login', false);
+        $isAutomaticLoginEnabled = ConfigHelper::getConfig('phpui.olt_manager_automatic_login', false);
         if($isAutomaticLoginEnabled === "true"){
             $isAutomaticLoginEnabled = true;
         }else{
@@ -22,13 +22,13 @@ class OmiNodeHandler
         }
 
         if($isAutomaticLoginEnabled){
-            $params.= '?x-auth-token='.ConfigHelper::getConfig('omi.olt_manager_token');
+            $params.= '?x-auth-token='.ConfigHelper::getConfig('phpui.olt_manager_token');
             $params.= '&x-auth-additional-token='.$omi->getMyToken();
 
         }
 
-        $SMARTY->assign('omioltmanagerurl', ConfigHelper::getConfig('omi.olt_manager_url'));
-        $SMARTY->assign('omioltmanagertoken', ConfigHelper::getConfig('omi.olt_manager_token'));
+        $SMARTY->assign('omioltmanagerurl', ConfigHelper::getConfig('phpui.olt_manager_url'));
+        $SMARTY->assign('omioltmanagertoken', ConfigHelper::getConfig('phpui.olt_manager_token'));
         $SMARTY->assign('omioltmanagerdevice', 'device');
         $SMARTY->assign('omioltmanagerparams', $params);
 

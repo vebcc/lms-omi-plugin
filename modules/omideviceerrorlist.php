@@ -4,13 +4,13 @@ $layout['pagetitle'] = trans('OMI - Lista urządzeń z błędami');
 
 $omi = LMSOmiPlugin::getOmiInstance();
 
-$providerType = ConfigHelper::getConfig('omi.provider_type', 'description');
+$providerType = ConfigHelper::getConfig('phpui.olt_manager_provider_type', 'description');
 
 //TODO: dodac jakies ustawienia jakiego typu uzywa dany lms (version)
 $onuDeviceConnections = $omi->getFromOmiModule('getNetworkDeviceConnectionsWithError', ['version' => $providerType]);
 
 $page = (!$_GET['page'] ? 1 : $_GET['page']);
-$pagelimit = ConfigHelper::getConfig('omi.deviceerrorlist_pagelimit', count($onuDeviceConnections));
+$pagelimit = ConfigHelper::getConfig('phpui.olt_manager_deviceerrorlist_pagelimit', count($onuDeviceConnections));
 $start = ($page - 1) * $pagelimit;
 
 $errorDevices = [];

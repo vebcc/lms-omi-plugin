@@ -12,8 +12,8 @@ class OmiNetDevHandler
 
     private function assignOmiData(Smarty $SMARTY)
     {
-        $SMARTY->assign('omioltmanagerurl', ConfigHelper::getConfig('omi.olt_manager_url'));
-        $SMARTY->assign('omioltmanagertoken', ConfigHelper::getConfig('omi.olt_manager_token'));
+        $SMARTY->assign('omioltmanagerurl', ConfigHelper::getConfig('phpui.olt_manager_url'));
+        $SMARTY->assign('omioltmanagertoken', ConfigHelper::getConfig('phpui.olt_manager_token'));
         $SMARTY->assign('omioltmanagerdevice', 'networkDevice');
     }
 }

@@ -46,14 +46,14 @@ class OmiInitHandler
             'omi' => [
                 'name' => 'OltManager',
                 'img' => 'LMSOmiPlugin/olt_manager.ico',
-                'link' => ConfigHelper::getConfig('omi.olt_manager_url', '?m=omideviceerrorlist'),
+                'link' => ConfigHelper::getConfig('phpui.olt_manager_url', '?m=omideviceerrorlist'),
                 'tip' => trans('OltManager integration'),
                 'accesskey' =>'k',
                 'prio' => 40,
                 'submenu' => [
                     'omioltmanagerurl' => [
                         'name' => trans('OltManager'),
-                        'link' => ConfigHelper::getConfig('omi.olt_manager_url', '?m=omideviceerrorlist'),
+                        'link' => ConfigHelper::getConfig('phpui.olt_manager_url', '?m=omideviceerrorlist'),
                         'tip' => trans('OltManager'),
                         'prio' => 10,
                     ],
