@@ -14,7 +14,7 @@ class CustomerProvider
 
     }
 
-    public function getCustomerById(int $id): array
+    public function getCustomerById($id)
     {
         return $this->repository->findCustomerById($id);
     }

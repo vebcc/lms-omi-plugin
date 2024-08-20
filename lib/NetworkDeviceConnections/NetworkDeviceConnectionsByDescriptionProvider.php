@@ -23,7 +23,7 @@ class NetworkDeviceConnectionsByDescriptionProvider implements NetworkDeviceConn
 
     }
 
-    public function getNetworkDeviceConnections(): array
+    public function getNetworkDeviceConnections()
     {
         $onuDeviceConnections = [];
 
@@ -33,7 +33,7 @@ class NetworkDeviceConnectionsByDescriptionProvider implements NetworkDeviceConn
         return $onuDeviceConnections;
     }
 
-    public function getNetworkDeviceConnectionsWithError(): array
+    public function getNetworkDeviceConnectionsWithError()
     {
         $onuDeviceConnections = [];
 
@@ -43,7 +43,7 @@ class NetworkDeviceConnectionsByDescriptionProvider implements NetworkDeviceConn
         return $onuDeviceConnections;
     }
 
-    private function includeDevices(array $onuDeviceConnections, bool $onlyError = false): array
+    private function includeDevices($onuDeviceConnections, $onlyError = false)
     {
         $nodeCollection = $this->lms->GetNodeList();
 
@@ -123,7 +123,7 @@ class NetworkDeviceConnectionsByDescriptionProvider implements NetworkDeviceConn
         return $onuDeviceConnections;
     }
 
-    private function includeNetworkDevices(array $onuDeviceConnections, bool $onlyError = false): array
+    private function includeNetworkDevices($onuDeviceConnections, $onlyError = false)
     {
         $netDevProvider = new NetDevProvider();
 
@@ -249,7 +249,7 @@ class NetworkDeviceConnectionsByDescriptionProvider implements NetworkDeviceConn
         return $onuDeviceConnections;
     }
 
-    private function createNewOnuDeviceConnections(array $address): array
+    private function createNewOnuDeviceConnections($address)
     {
         return [
             'address' => $address,

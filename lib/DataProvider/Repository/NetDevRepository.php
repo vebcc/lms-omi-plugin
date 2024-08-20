@@ -10,7 +10,7 @@ class NetDevRepository
         $this->db = LMSDB::getInstance();
     }
 
-    public function findNetDevCollection(): ?array
+    public function findNetDevCollection()
     {
         return $this->db->GetAll('SELECT d.id, d.name,
 				d.description, d.producer, d.model, m.type AS devtype, t.name AS devtypename,

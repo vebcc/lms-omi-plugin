@@ -10,7 +10,7 @@ class AddressRepository
         $this->db = LMSDB::getInstance();
     }
 
-    public function findAddressByAddressId(int $address_id): ?array
+    public function findAddressByAddressId($address_id)
     {
         return $this->db->GetRow(
             'SELECT

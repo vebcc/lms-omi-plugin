@@ -6,7 +6,7 @@ $layout['pagetitle'] = 'OMI - API';
 
 $params = $_GET;
 
-$type = $params['type'] ?? 'error';
+$type = isset($params['type']) ? $params['type'] : 'error';
 
 unset($params['m'] ,$params['module'], $params['type']);
 

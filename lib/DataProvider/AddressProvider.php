@@ -14,7 +14,7 @@ class AddressProvider
 
     }
 
-    public function getAddressByAddressId(int $address_id): ?array
+    public function getAddressByAddressId($address_id)
     {
         return $this->repository->findAddressByAddressId($address_id);
     }

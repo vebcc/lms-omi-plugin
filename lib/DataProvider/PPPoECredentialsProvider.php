@@ -14,7 +14,7 @@ class PPPoECredentialsProvider
         $this->lms = LMS::getInstance();
     }
 
-    public function getPPPoECredentials(array $params = []): ?array
+    public function getPPPoECredentials(array $params = [])
     {
         if (key_exists('mac', $params)) {
             return $this->getPPPoECredentialsByMacAddress($params['mac'], $params);
@@ -25,7 +25,7 @@ class PPPoECredentialsProvider
         return null;
     }
 
-    public function getPPPoeCredentialsByNodeId(int $id, array $params): ?array
+    public function getPPPoeCredentialsByNodeId($id, $params)
     {
         $node = $this->lms->GetNode($id);
         if (!$node) {
@@ -35,7 +35,7 @@ class PPPoECredentialsProvider
         return $this->getDataFromNode($node);
     }
 
-    public function getPPPoECredentialsByMacAddress(string $mac, array $params): ?array
+    public function getPPPoECredentialsByMacAddress($mac, $params)
     {
         $macCollection[] = $mac;
 
@@ -67,7 +67,7 @@ class PPPoECredentialsProvider
         return null;
     }
 
-    private function getDataFromNode($node): ?array
+    private function getDataFromNode($node)
     {
         return [
             "username" => $node['name'],

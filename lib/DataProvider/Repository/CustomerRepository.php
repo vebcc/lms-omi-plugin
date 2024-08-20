@@ -10,7 +10,7 @@ class CustomerRepository
         $this->db = LMSDB::getInstance();
     }
 
-    public function findCustomerById(int $id): array
+    public function findCustomerById($id)
     {
         return $this->db->GetRow(
             'SELECT * FROM customers WHERE id=?',

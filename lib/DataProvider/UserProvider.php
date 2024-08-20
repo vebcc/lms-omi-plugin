@@ -12,19 +12,19 @@ class UserProvider
         $this->repository = new UserRepository();
     }
 
-    public function getUserToken(int $id): ?string
+    public function getUserToken($id)
     {
         $hash = $this->repository->getUserPasswordHash($id);
         $login = $this->repository->getUserLogin($id);
         return $login."$".md5($hash);
     }
 
-    public function getUserLogin(int $id): ?string
+    public function getUserLogin($id)
     {
         return $this->repository->getUserLogin($id);
     }
 
-    public function getUserTokenCollection(): array
+    public function getUserTokenCollection()
     {
         $userPasswordHashCollection = $this->repository->getUserPasswordHashCollection();
         $userTokenCollection = [];

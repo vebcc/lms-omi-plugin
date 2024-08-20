@@ -17,7 +17,7 @@ class NetworkDeviceProvider
         $this->customerProvider = new CustomerProvider();
     }
 
-    public function getNetworkDevices(): array
+    public function getNetworkDevices()
     {
         $networkDevices = [];
         $netDevProvider = new NetDevProvider();

@@ -18,7 +18,7 @@ class LMSOmiPlugin extends LMSPlugin
 
     private static $omi = null;
 
-    public static function getOmiInstance(): ?OMI
+    public static function getOmiInstance()
     {
         if (empty(self::$omi)) {
             self::$omi = new OMI();

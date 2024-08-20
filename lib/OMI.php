@@ -22,9 +22,9 @@ class OMI
         $this->lms = LMS::getInstance();
     }
 
-    public function getFromOmiModule(string $type, array $params): array
+    public function getFromOmiModule($type, $params)
     {
-        switch ($type) { //ready to match php 8.0
+        switch ($type) {
             default:
                 $result = $this->getDefaultResult();
                 break;
@@ -57,21 +57,21 @@ class OMI
         return $result;
     }
 
-    public function getFromApiModule(string $type, array $params): array
+    public function getFromApiModule($type, $params)
     {
         $api = new API();
 
         return $api->getFromApi($type, $params);
     }
 
-    private function getDefaultResult(): array
+    private function getDefaultResult()
     {
         return ['exception' => 'type parameter required', 'code' => 10];
     }
 
-    private function getNetworkDeviceConnections(array $params): array
+    private function getNetworkDeviceConnections($params)
     {
-        $version = $params['version'] ?? 'description'; //mac and other when isp need.
+        $version = isset($params['version']) ? $params['version'] : 'description'; //mac and other when isp need.
 
         $provider = null;
 
@@ -87,9 +87,9 @@ class OMI
         return $provider->getNetworkDeviceConnections();
     }
 
-    private function getNetworkDeviceConnectionsWithError(array $params): array
+    private function getNetworkDeviceConnectionsWithError($params)
     {
-        $version = $params['version'] ?? 'description'; //mac and other when isp need.
+        $version = isset($params['version']) ? $params['version'] : 'description'; //mac and other when isp need.
 
         $provider = null;
 
@@ -105,7 +105,7 @@ class OMI
         return $provider->getNetworkDeviceConnectionsWithError();
     }
 
-    public function getPPPoECredentials(array $params = []): array
+    public function getPPPoECredentials($params = [])
     {
         $pppoeCredentialsProvider = new PPPoECredentialsProvider();
         $pppoeCredentials = $pppoeCredentialsProvider->getPPPoECredentials($params);
@@ -126,7 +126,7 @@ class OMI
         return $userToken;
     }
 
-    private function getUserTokens(): array
+    private function getUserTokens()
     {
         $userProvider = new UserProvider();
         $userTokenCollection = $userProvider->getUserTokenCollection();
@@ -147,7 +147,7 @@ class OMI
         return $userLogin;
     }
 
-    public function getDevices(): array
+    public function getDevices()
     {
         $deviceProvider = new DeviceProvider();
         $devices = $deviceProvider->getDevices();
@@ -157,7 +157,7 @@ class OMI
         return $devices;
     }
 
-    public function getNetworkDevices(): array
+    public function getNetworkDevices()
     {
         $networkDeviceProvider = new NetworkDeviceProvider();
         $networkDevices = $networkDeviceProvider->getNetworkDevices();

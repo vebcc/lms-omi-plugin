@@ -9,12 +9,12 @@ class UserRepository
         $this->db = LMSDB::getInstance();
     }
 
-    public function getUserPasswordHash(int $id): ?string
+    public function getUserPasswordHash($id)
     {
         return $this->db->GetOne('SELECT passwd FROM vusers WHERE id=?', array($id));
     }
 
-    public function getUserLogin(int $id): ?string
+    public function getUserLogin($id)
     {
         return $this->db->GetOne('SELECT login FROM vusers WHERE id=?', array($id));
     }

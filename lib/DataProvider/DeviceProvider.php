@@ -16,7 +16,7 @@ class DeviceProvider
         $this->customerProvider = new CustomerProvider();
     }
 
-    public function getDevices(): array
+    public function getDevices()
     {
         $devices = [];
         $nodeCollection = $this->lms->GetNodeList();

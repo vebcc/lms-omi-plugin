@@ -14,7 +14,7 @@ class NetDevProvider
 
     }
 
-    public function getNetDevCollection(): array
+    public function getNetDevCollection()
     {
         $netDevCollection = $this->repository->findNetDevCollection();
 

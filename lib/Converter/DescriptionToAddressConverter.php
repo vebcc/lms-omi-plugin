@@ -3,7 +3,7 @@
 
 class DescriptionToAddressConverter
 {
-    public function convert(?string $description, bool $errorInfoInResultWhenFailed = false): ?array
+    public function convert($description, $errorInfoInResultWhenFailed = false)
     {
         //Brak notatki
         if($description == "" || !$description){
@@ -74,7 +74,7 @@ class DescriptionToAddressConverter
         ];
     }
 
-    private function getSecondPartOfAddress(string $addressToPrepare, bool $errorInfoInResultWhenFailed = false): ?array
+    private function getSecondPartOfAddress($addressToPrepare, $errorInfoInResultWhenFailed = false)
     {
         $spp = explode('/', $addressToPrepare);
 
@@ -110,7 +110,7 @@ class DescriptionToAddressConverter
         ];
     }
 
-    private function errorResultProvider(string $errorName, string $address, bool $errorInfoInResultWhenFailed = false): ?array
+    private function errorResultProvider($errorName, $address, $errorInfoInResultWhenFailed = false)
     {
         if(!$errorInfoInResultWhenFailed){
             return null;

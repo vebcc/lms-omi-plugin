@@ -6,7 +6,7 @@ class MacAddressCorrection
 {
 
 
-    public static function correct(?string $macAddress, string $returnedFormat = 'cisco'): ?string
+    public static function correct($macAddress, $returnedFormat = 'cisco')
     {
         if(!$macAddress){
             return null;
@@ -62,14 +62,14 @@ class MacAddressCorrection
         return $correctMAC;
     }
 
-    public static function decToHex($number): string
+    public static function decToHex($number)
     {
         $hexValue = dechex($number);  // Konwertuj na szesnastkowy
         $hexValue = str_pad($hexValue, 2, '0', STR_PAD_LEFT);  // Uzupełnij zerami z przodu
         return $hexValue;
     }
 
-    public static function modifyMacAddress($macAddress, $amount): string
+    public static function modifyMacAddress($macAddress, $amount)
     {
         $macVendorID = substr($macAddress, 0, 9);
         $macID = substr($macAddress, 9);

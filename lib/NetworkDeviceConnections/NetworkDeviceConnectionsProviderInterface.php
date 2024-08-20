@@ -2,5 +2,5 @@
 
 interface NetworkDeviceConnectionsProviderInterface
 {
-    public function getNetworkDeviceConnections(): array;
+    public function getNetworkDeviceConnections();
 }

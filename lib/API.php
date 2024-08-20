@@ -12,7 +12,7 @@ class API
         $this->lms = LMS::getInstance();
     }
 
-    public function getFromApi(string $type, array $params = []): array
+    public function getFromApi($type, $params = [])
     {
         $object = API::class;
         if(key_exists('lmsDirect', $params)){
@@ -34,7 +34,7 @@ class API
         return call_user_func_array([$object, $type], $this->argsHandler($object, $type, $params));
     }
 
-    private function argsHandler($object, string $function, array $params): array
+    private function argsHandler($object, $function, $params)
     {
         try{
             $r = new ReflectionMethod($object, $function);
@@ -64,17 +64,17 @@ class API
         return $args;
     }
 
-    private function getNodeCollection(): array
+    private function getNodeCollection()
     {
         return $this->lms->GetNodeList();
     }
 
-    private function getNetDevCollection(): array
+    private function getNetDevCollection()
     {
         return $this->lms->GetNetDevList();
     }
 
-    private function getNetNodeCollection(): array
+    private function getNetNodeCollection()
     {
         return $this->lms->GetNetNodeList([], []);
     }
