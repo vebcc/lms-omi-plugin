@@ -27,3 +27,4 @@ $_LANG['entity.onu.status.type.level.11'] = 'Nie działa';
 $_LANG['entity.onu.status.type.level.12'] = 'Aktywny';
 $_LANG['There are no configuration.'] = 'Brak konfiguracji dla tego onu.';
 $_LANG['OltManager onu configuration'] = 'OltManager - lista aktualnej konfiguracji ONU';
+?>

@@ -1,6 +1,6 @@
 <?php
 
-set_include_path(PLUGINS_DIR . DIRECTORY_SEPARATOR . LMSOmiPlugin::PLUGIN_DIRECTORY_NAME
+set_include_path(PLUG_DIR . DIRECTORY_SEPARATOR . 'LMSOmiPlugin'
     . DIRECTORY_SEPARATOR . 'lib' . PATH_SEPARATOR . get_include_path());
 
 require_once 'NetworkDeviceConnections/NetworkDeviceConnectionsProviderInterface.php';
@@ -13,14 +13,14 @@ require_once 'DataProvider/NetworkDeviceProvider.php';
 
 class OMI
 {
-    private $db;
-    private $lms;
+/*    private $db;
+    private $lms;*/
 
-    public function __construct()
+/*    public function __construct()
     {
         $this->db = LMSDB::getInstance();
         $this->lms = LMS::getInstance();
-    }
+    }*/
 
     public function getFromOmiModule($type, $params)
     {

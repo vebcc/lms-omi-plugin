@@ -24,11 +24,11 @@ class NetworkDeviceProvider
 
         $netDevCollection = $netDevProvider->getNetDevCollection();
 
-        unset(
+        /*unset(
             $netDevCollection['total'],
             $netDevCollection['order'],
             $netDevCollection['direction'],
-        );
+        );*/
 
         foreach ($netDevCollection as $netDev) {
             $ownerId = $netDev['ownerid'];

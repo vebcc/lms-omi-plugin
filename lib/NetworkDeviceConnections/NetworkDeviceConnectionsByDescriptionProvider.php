@@ -47,14 +47,13 @@ class NetworkDeviceConnectionsByDescriptionProvider implements NetworkDeviceConn
     {
         $nodeCollection = $this->lms->GetNodeList();
 
-        unset(
+       /* unset(
             $nodeCollection['total'],
             $nodeCollection['order'],
             $nodeCollection['direction'],
-            $nodeCollection['total'],
             $nodeCollection['totalon'],
             $nodeCollection['totaloff'],
-        );
+        );*/
 
         foreach ($nodeCollection as $node) {
             $fullNode = $this->lms->GetNode($node['id']);
@@ -129,11 +128,11 @@ class NetworkDeviceConnectionsByDescriptionProvider implements NetworkDeviceConn
 
         $netDevCollection = $netDevProvider->getNetDevCollection();
 
-        unset(
+       /* unset(
             $netDevCollection['total'],
             $netDevCollection['order'],
             $netDevCollection['direction'],
-        );
+        );*/
 
         foreach ($netDevCollection as $netDev) {
 

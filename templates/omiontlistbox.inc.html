@@ -31,68 +31,49 @@
     }
 </style>
 
-<div id="omionus" data-label="Lista onu klienta" class="lms-ui-tab-container lms-ui-sortable general-omi-text">
-
-    <div class="lms-ui-tab-header lmsbox-titlebar" data-lmsbox-content="omi-onu-panel-nodeinfo">
-
-        <div class="lms-ui-tab-header-cell">
-            <img SRC="img/LMSOmiPlugin/olt_manager.ico" alt="" class="lms-ui-sortable-handle"
+<table style="width: 100%" cellpadding="3" border="1">
+    <tr class="dark info-hover">
+        <td style="width: 100%; text-align: left; white-space: nowrap;" class="fall hand" onclick="ShowOrHideBox('omi-onu-panel-nodeinfo');">
+            <img SRC="img/LMSOmiPlugin/olt_manager.ico" alt=""
                  style="max-height: 20px; max-width: auto;">
             <strong>{trans('OltManager customer ONU list')} (<span class="onu-counter-span">0</span>):</strong>
-
-
-        </div>
-    </div>
-
-    <div class="lms-ui-tab-contents lms-ui-multi-check assignmentpanel" id="omi-onu-panel-nodeinfo" style="">
-
-        <div class="lms-ui-tab-table" id="super-omi-table">
-
-            <div class="lms-ui-tab-table-row header">
-                <div class="lms-ui-tab-table-wrapper col-5">
-                    <div class="lms-ui-tab-table-wrapper col-2">
-                        <div class="lms-ui-tab-table-column name">
-                            <strong>ID:</strong>
-                            <br> Adres:
-                        </div>
-                        <div class="lms-ui-tab-table-column description">
-                            MAC:<br>Serial:
-                        </div>
-                    </div>
-                    <div class="lms-ui-tab-table-column id">
+        </td>
+    </tr>
+    <tr id="omi-onu-panel-nodeinfo" style="display: none;">
+        <td style="width: 100%;" class="fall">
+            <table cellpadding="5" cellspacing="0" style="width: 100%;" class="lms-ui-tab-table">
+                <tr class="dark">
+                    <td class="fleftu" style="width: 57%;">
+                        <strong>ID:</strong>
+                        <br> Adres:
+                    </td>
+                    <td class="fleftu" style="border-left: 0px; width: 10%;">
+                        MAC:<br>Serial:
+                    </td>
+                    <td class="fleftu" style="border-left:0px; width: 10%;">
                         Model:
-                    </div>
-                    <div class="lms-ui-tab-table-wrapper col-2">
-                        <div class="lms-ui-tab-table-column id">
-                            Fizyczny status:
-                            <br>
-                            Status połączenia:
-                        </div>
-                        <div class="lms-ui-tab-table-column id">
-                            Sygnał ONU:
-                            <br>
-                            Sygnał OLT:
-                        </div>
-                    </div>
-                </div>
+                    </td>
+                    <td class="fbt" style="width: 1%; white-space: nowrap; text-align: right;">
+                        Fizyczny status:
+                        <br>
+                        Status połączenia:
+                    </td>
+                    <td class="fbt" style="width: 1%; white-space: nowrap;">
+                        Sygnał ONU:
+                        <br>
+                        Sygnał OLT:
+                    </td>
+                    <td class="frightu" style="width: 1%;">
+                        &nbsp;
+                    </td>
+                </tr>
 
-                <!-- <div class="lms-ui-tab-table-column buttons">
-                     &nbsp;
-                 </div>-->
-            </div>
-
-        </div>
-
-    </div>
-    <script>
-        if (getCookie("omi-onu-panel-nodeinfo") == "1") {
-            $("#omi-onu-panel-nodeinfo").show();
-        }
-    </script>
-</div>
+            </table>
+        </td>
+    </tr>
+</table>
 
 <script type="text/javascript">
-    <!--
     let searchParams = new URLSearchParams(window.location.search);
 
     let $omiCustomerId = null;
@@ -107,11 +88,401 @@
     let $omiOnuId = null;
 
     let $omiParams = '{$omioltmanagerparams}';
-    //-->
 
 </script>
 
-{include file="omiontlistboxjs.html"}
+<script type="text/javascript">
+
+    function getOnuCollection(customerID, token, url) {
+        runRequest(customerID, token, url);
+    }
+
+    function parseToSend(data, id) {
+        return JSON.stringify({
+            query: data,
+            variables: {
+                "id": '/api/customers/' + id,
+            }
+        });
+    }
+
+    function sendAjaxRequest(method, url, data, contentType, token) {
+        $.ajax({
+            method: method,
+            url: url,
+            headers: {
+                'X-AUTH-TOKEN': token
+            },
+            data: data,
+            contentType: contentType,
+            success: function (data) {
+                injectToLMS(data);
+            },
+        });
+    }
+
+    let superQuery = `query ($id: ID!){
+                customer(id: $id) {
+                    devices {
+                      edges {
+                        node {
+                          onuDeviceConnection {
+                            onu {
+                              id
+                              oltCardSlot{
+                                oltCard {
+                                  olt {
+                                    name
+                                    shortName
+                                  }
+                                }
+                              }
+                              address
+                              macAddress
+                              serial
+                              hardwareVersion
+                              softwareVersion
+                              firmwareVersion
+                              typeReported {
+                                name
+                              }
+                              type {
+                                name
+                              }
+                              lastOnuSignal {
+                                upOltRx
+                                downOnuRx
+                                dateTime
+                              }
+                              lastOnuBasicPhysicalStatus {
+                                cause {
+                                  level
+                                  levelName
+                                  value
+                                }
+                                datetime
+                              }
+                              lastOnuBasicOnlineStatus {
+                                cause {
+                                  level
+                                  levelName
+                                  value
+                                }
+                                datetime
+                              }
+                              locationAddress{
+                                city
+                                street
+                                house
+                              }
+                              deleted
+                            }
+                          }
+                        }
+                      }
+                    }
+                    networkDevices {
+                      edges {
+                        node {
+                          onuDeviceConnection {
+                            onu {
+                              id
+                              oltCardSlot{
+                                oltCard {
+                                  olt {
+                                    name
+                                    shortName
+                                  }
+                                }
+                              }
+                              address
+                              macAddress
+                              serial
+                              hardwareVersion
+                              softwareVersion
+                              firmwareVersion
+                              typeReported {
+                                name
+                              }
+                              type {
+                                name
+                              }
+                              lastOnuSignal {
+                                upOltRx
+                                downOnuRx
+                                dateTime
+                              }
+                              lastOnuBasicPhysicalStatus {
+                                cause {
+                                  level
+                                  levelName
+                                  value
+                                }
+                                datetime
+                              }
+                              lastOnuBasicOnlineStatus {
+                                cause {
+                                  level
+                                  levelName
+                                  value
+                                }
+                                datetime
+                              }
+                              locationAddress{
+                                city
+                                street
+                                house
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                    }
+                }`;
+
+    function runQuery(id, token, $url) {
+        $fullUrl = $url + '/api/graphql';
+        sendAjaxRequest("POST", $fullUrl, parseToSend(superQuery, parseInt(id)), 'application/json', token);
+    }
+
+    function injectToLMS(result) {
+
+        console.log(result);
+
+        if (!result['data']) {
+            return;
+        }
+
+        if (!result['data']['customer']) {
+            return;
+        }
+
+        let $onuCollection = [];
+
+        result['data']['customer']['networkDevices']['edges'].forEach(element => {
+            if(element['node']['onuDeviceConnection']){
+                $onuCollection.push(element['node']['onuDeviceConnection']['onu']);
+            }
+        });
+        result['data']['customer']['devices']['edges'].forEach(element => {
+            if(element['node']['onuDeviceConnection']){
+                $onuId = element['node']['onuDeviceConnection']['onu']['id'];
+                $exists = false;
+
+                $onuCollection.forEach(onu => {
+                    if (onu['id'] === $onuId) {
+                        $exists = true;
+                    }
+                })
+
+                if (!$exists) {
+                    $onuCollection.push(element['node']['onuDeviceConnection']['onu']);
+                }
+            }
+        });
+
+        $("span.onu-counter-span").html($onuCollection.length);
+
+        changesTable = $(".lms-ui-tab-table");
+
+        if($onuCollection.length === 0){
+            changesTable.append("<tr class=\"lms-ui-tab-table-row\"><td><span>Brak dopisanych urządzeń ONU!</span></td></tr>");
+        }
+
+
+        $onuCollection.forEach(element => {
+            if(element['deleted']){
+                return;
+            }
+
+
+            let onuAddress = element['oltCardSlot']['oltCard']['olt']['shortName'] + '_' + element['address'];
+
+            let onuId = element['id'].split('/')[3];
+            let macAddress = element['macAddress'] ? element['macAddress'] : '';
+            let serialNumber = element['serial'] ? "(" + element['serial'] + ")" : '';
+            let type = element['type'] ? element['type']['name'] : '';
+            let typeReported = element['typeReported'] ? element['typeReported']['name'] : type;
+            let lastPhysicalStatusName = element['lastOnuBasicPhysicalStatus'] ? element['lastOnuBasicPhysicalStatus']['cause']['value'] : '';
+            let lastPhysicalStatusLevel = element['lastOnuBasicPhysicalStatus'] ? element['lastOnuBasicPhysicalStatus']['cause']['level'] : '';
+            let lastPhysicalStatusTime = element['lastOnuBasicPhysicalStatus'] ? element['lastOnuBasicPhysicalStatus']['datetime'] : '';
+            let lastOnlineStatusName = element['lastOnuBasicOnlineStatus'] ? element['lastOnuBasicOnlineStatus']['cause']['value'] : '';
+            let lastOnlineStatusLevel = element['lastOnuBasicOnlineStatus'] ? element['lastOnuBasicOnlineStatus']['cause']['level'] : '';
+            let lastOnlineStatusTime = element['lastOnuBasicOnlineStatus'] ? element['lastOnuBasicOnlineStatus']['datetime'] : '';
+
+            let lastOnuSignalOnu = element['lastOnuSignal'] ? element['lastOnuSignal']['downOnuRx'] : '';
+            let lastOnuSignalOlt = element['lastOnuSignal'] ? element['lastOnuSignal']['upOltRx'] : '';
+
+            let locationAddress = "";
+            if(element['locationAddress']){
+                if(element['locationAddress']['city']){
+                    locationAddress += element['locationAddress']['city'] + ' ';
+                }
+                if(element['locationAddress']['street']){
+                    locationAddress += element['locationAddress']['street'] + ' ';
+                }
+                if(element['locationAddress']['house']){
+                    locationAddress += element['locationAddress']['house'];
+                }
+            }
+
+            let statusPhysicalTimeAgo = timeAgo(new Date(Date.parse(lastPhysicalStatusTime)));
+
+            changesTable.append("<div class=\"lms-ui-tab-table-row\" data-target-url=\"" + $omiOMUrl + "/onu/" + onuId + $omiParams + "\">\n" +
+                "                <div class=\"lms-ui-tab-table-wrapper col-5\">\n" +
+                "                    <div class=\"lms-ui-tab-table-wrapper col-2\">\n" +
+                "                        <div class=\"lms-ui-tab-table-column name\">\n" +
+                "                            <strong>" + onuAddress + "</strong>\n" +
+                "                            <br> " + locationAddress +
+                "                        </div>\n" +
+                "                        <div class=\"lms-ui-tab-table-column description\">\n" +
+                "                            " + macAddress + "<br>" + serialNumber +
+                "                        </div>\n" +
+                "                    </div>\n" +
+                "                    <div class=\"lms-ui-tab-table-column id\">\n" +
+                "                        " + typeReported +
+                "                    </div>\n" +
+                "                    <div class=\"lms-ui-tab-table-wrapper col-2\">\n" +
+                "                        <div class=\"lms-ui-tab-table-column id\">\n" +
+                "                            <span class=\"status-color-general status-color-level-" + lastPhysicalStatusLevel + "\">" + lastPhysicalStatusName + "</span>"+ ' (' + statusPhysicalTimeAgo +
+                "                            )<br>\n" +
+                "                            <span class=\"status-color-general status-color-level-" + lastOnlineStatusLevel + "\">" + lastOnlineStatusName + "</span>" +
+                "                        </div>\n" +
+                "                        <div class=\"lms-ui-tab-table-column id\">\n" +
+                "                            <span class='signal-color-general onu-signal-value'>" + parseFloat(lastOnuSignalOnu).toFixed(2) + "</span>(dbi)" +
+                "                            <br>\n" +
+                "                            <span class='signal-color-general olt-signal-value'>" + parseFloat(lastOnuSignalOlt).toFixed(2) + "</span>(dbi)" +
+                "                        </div>\n" +
+                "                    </div>\n" +
+                "                </div>\n" +
+                "            </div>");
+        });
+
+        updateSignals();
+
+    }
+
+    function runRequest(customerID, token, url) {
+        let url1 = url + '/customer/lms/' + customerID;
+
+        $.ajax({
+            method: 'GET',
+            url: url1,
+            headers: {
+                'X-AUTH-TOKEN': token
+            },
+            data: '',
+            contentType: 'application/json',
+            success: function (data) {
+                if (data['id']) {
+                    runQuery(data['id'], token, url);
+                }
+            },
+            error: function (xhr, status, error) {
+                if(error === 'Not Found'){
+                    $("div#super-omi-table").append("<div class=\"lms-ui-tab-table-row\"><span style='font-size: larger'>Brak dopisanych urządzeń ONU.</span></div>");
+                }else{
+                    console.log(status);
+                    console.log(error);
+                }
+            }
+        });
+    }
+
+    function timeAgo (date) {
+        const seconds = Math.floor((new Date() - date) / 1000);
+
+        let interval = Math.floor(seconds / 31536000);
+        if (interval > 1) {
+            return interval + ' lat temu';
+        }
+
+        interval = Math.floor(seconds / 2592000);
+        if (interval > 4) {
+            return interval + ' miesięcy temu';
+        }
+        if (interval > 1) {
+            return interval + ' miesiące temu';
+        }
+
+        interval = Math.floor(seconds / 86400);
+        if (interval > 1) {
+            return interval + ' dni temu';
+        }
+
+        interval = Math.floor(seconds / 3600);
+        if (interval > 1) {
+            return interval + ' godzin temu';
+        }
+
+        interval = Math.floor(seconds / 60);
+        if (interval > 1) {
+            return interval + ' minut temu';
+        }
+
+        if(seconds < 10) return 'teraz';
+
+        return Math.floor(seconds) + ' sekund temu';
+    }
+
+    function updateSignals() {
+
+        let url1 = $omiOMUrl + '/setting/by_name/signal_value_to_alarm';
+        let url2 = $omiOMUrl + '/setting/by_name/olt_signal_value_to_alarm';
+
+        $.ajax({
+            method: 'GET',
+            url: url1,
+            headers: {
+                'X-AUTH-TOKEN': $omiOMToken
+            },
+            data: '',
+            contentType: 'application/json',
+            success: function (data) {
+                if(data['value']){
+                    $('.onu-signal-value').each(function() {
+                        var currentValue = parseFloat($(this).text());
+
+                        if (currentValue < data['value']) {
+                            $(this).css('color', 'red');
+                            $(this).text(currentValue.toFixed(2));
+                        }else{
+                            $(this).css('color', 'green');
+                        }
+                    });
+                }
+            },
+        });
+
+        $.ajax({
+            method: 'GET',
+            url: url2,
+            headers: {
+                'X-AUTH-TOKEN': $omiOMToken
+            },
+            data: '',
+            contentType: 'application/json',
+            success: function (data) {
+                if(data['value']){
+                    $('.olt-signal-value').each(function() {
+                        var currentValue = parseFloat($(this).text());
+
+                        if (currentValue < data['value']) {
+                            $(this).css('color', 'red');
+                            $(this).text(currentValue.toFixed(2));
+                        }else{
+                            $(this).css('color', 'green');
+                        }
+                    });
+                }
+            },
+        });
+
+
+    }
+
+</script>
 
 <script type="text/javascript">
     (function ($) {

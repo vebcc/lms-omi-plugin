@@ -21,14 +21,14 @@ class DeviceProvider
         $devices = [];
         $nodeCollection = $this->lms->GetNodeList();
 
-        unset(
+       /* unset(
             $nodeCollection['total'],
             $nodeCollection['order'],
             $nodeCollection['direction'],
             $nodeCollection['total'],
             $nodeCollection['totalon'],
             $nodeCollection['totaloff'],
-        );
+        );*/
 
         foreach ($nodeCollection as $node) {
             $fullNode = $this->lms->GetNode($node['id']);
