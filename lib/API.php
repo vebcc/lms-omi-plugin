@@ -57,11 +57,6 @@ class API
                 array_push($args, null);
                 continue;
             }
-            $splittedType = explode('\\', ltrim($param->getType(), '?'));
-            if(!key_exists(1, $splittedType)){
-                array_push($args, $value);
-                continue;
-            }
 
             return ['exception' => 'Something went wrong :('];
         }
