@@ -1,6 +1,11 @@
 <?php
 
-$omi = LMSOmiPlugin::getOMIInstance();
+error_reporting(E_ALL);
+ini_set('display_errors', 'On');
+
+require_once(PLUG_DIR.'/LMSOmiPlugin/lib/OMI.php');
+
+$omi = new OMI();
 
 $layout['pagetitle'] = 'OMI - API';
 
