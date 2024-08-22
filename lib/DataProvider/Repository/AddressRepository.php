@@ -3,16 +3,11 @@
 
 class AddressRepository
 {
-    private $db;
-
-    public function __construct()
-    {
-        $this->db = LMSDB::getInstance();
-    }
 
     public function findAddressByAddressId($address_id)
     {
-        return $this->db->GetRow(
+        global $LMS, $DB;
+        return $DB->GetRow(
             'SELECT
                 a.house as house,
                 lst.ident as streetIdent,

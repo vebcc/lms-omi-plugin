@@ -7,11 +7,8 @@ require_once 'Utils/MacAddressCorrection.php';
 
 class PPPoECredentialsProvider
 {
-    private $lms;
-
     public function __construct()
     {
-        $this->lms = LMS::getInstance();
     }
 
     public function getPPPoECredentials(array $params = [])
@@ -27,7 +24,8 @@ class PPPoECredentialsProvider
 
     public function getPPPoeCredentialsByNodeId($id, $params)
     {
-        $node = $this->lms->GetNode($id);
+        global $LMS, $DB;
+        $node = $LMS->GetNode($id);
         if (!$node) {
             return null;
         }
@@ -37,6 +35,7 @@ class PPPoECredentialsProvider
 
     public function getPPPoECredentialsByMacAddress($mac, $params)
     {
+        global $LMS, $DB;
         $macCollection[] = $mac;
 
         if (key_exists('upMacs', $params)) {
@@ -52,12 +51,12 @@ class PPPoECredentialsProvider
         }
 
         foreach ($macCollection as $mac) {
-            $nodeId = $this->lms->GetNodeIDByMAC($mac);
+            $nodeId = $LMS->GetNodeIDByMAC($mac);
             if (!$nodeId) {
                 continue;
             }
 
-            $node = $this->lms->GetNode($nodeId);
+            $node = $LMS->GetNode($nodeId);
             if (!$node) {
                 continue;
             }

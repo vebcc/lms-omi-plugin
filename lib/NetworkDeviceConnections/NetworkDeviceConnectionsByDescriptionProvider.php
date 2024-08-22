@@ -8,7 +8,6 @@ require_once 'DataProvider/CustomerProvider.php';
 
 class NetworkDeviceConnectionsByDescriptionProvider implements NetworkDeviceConnectionsProviderInterface
 {
-    private $lms;
 
     private $descriptionToAddressConverter;
     private $addressProvider;
@@ -16,7 +15,6 @@ class NetworkDeviceConnectionsByDescriptionProvider implements NetworkDeviceConn
 
     public function __construct()
     {
-        $this->lms = LMS::getInstance();
         $this->descriptionToAddressConverter = new DescriptionToAddressConverter();
         $this->addressProvider = new AddressProvider();
         $this->customerProvider = new CustomerProvider();
@@ -45,7 +43,8 @@ class NetworkDeviceConnectionsByDescriptionProvider implements NetworkDeviceConn
 
     private function includeDevices($onuDeviceConnections, $onlyError = false)
     {
-        $nodeCollection = $this->lms->GetNodeList();
+        global $LMS, $DB;
+        $nodeCollection = $LMS->GetNodeList();
 
        /* unset(
             $nodeCollection['total'],
@@ -56,7 +55,7 @@ class NetworkDeviceConnectionsByDescriptionProvider implements NetworkDeviceConn
         );*/
 
         foreach ($nodeCollection as $node) {
-            $fullNode = $this->lms->GetNode($node['id']);
+            $fullNode = $LMS->GetNode($node['id']);
             $address = $this->descriptionToAddressConverter->convert($node['info'], $onlyError);
             if ((!$address) || (!$onlyError && key_exists('error', $address)) || ($onlyError && !key_exists('error', $address))) {
                 continue;
@@ -124,6 +123,7 @@ class NetworkDeviceConnectionsByDescriptionProvider implements NetworkDeviceConn
 
     private function includeNetworkDevices($onuDeviceConnections, $onlyError = false)
     {
+        global $LMS, $DB;
         $netDevProvider = new NetDevProvider();
 
         $netDevCollection = $netDevProvider->getNetDevCollection();
@@ -164,16 +164,16 @@ class NetworkDeviceConnectionsByDescriptionProvider implements NetworkDeviceConn
                 ];
             } else {
                 if($ownerId){
-                    $locationAddressId = $this->lms->GetCustomerAddress((int)$ownerId, DEFAULT_LOCATION_ADDRESS);
+                    $locationAddressId = $LMS->GetCustomerAddress((int)$ownerId, DEFAULT_LOCATION_ADDRESS);
                     if (!$locationAddressId) {
-                        $locationAddressId = $this->lms->GetCustomerAddress((int)$ownerId, BILLING_ADDRESS);
+                        $locationAddressId = $LMS->GetCustomerAddress((int)$ownerId, BILLING_ADDRESS);
                     }
                 }else{
-                    $nodesCollection = $this->lms->GetNetDevLinkedNodes($netDev['id']);
+                    $nodesCollection = $LMS->GetNetDevLinkedNodes($netDev['id']);
                     foreach ($nodesCollection as $node) {
-                        $locationAddressId = $this->lms->GetCustomerAddress((int)$node['ownerid'], DEFAULT_LOCATION_ADDRESS);
+                        $locationAddressId = $LMS->GetCustomerAddress((int)$node['ownerid'], DEFAULT_LOCATION_ADDRESS);
                         if(!$locationAddressId){
-                            $locationAddressId = $this->lms->GetCustomerAddress((int)$node['ownerid'], BILLING_ADDRESS);
+                            $locationAddressId = $LMS->GetCustomerAddress((int)$node['ownerid'], BILLING_ADDRESS);
                         }
                         $ownerId = $node['ownerid'];
                         if($locationAddressId){
@@ -194,7 +194,7 @@ class NetworkDeviceConnectionsByDescriptionProvider implements NetworkDeviceConn
             }
 
             if(!$ownerId){
-                $nodesCollection = $this->lms->GetNetDevLinkedNodes($netDev['id']);
+                $nodesCollection = $LMS->GetNetDevLinkedNodes($netDev['id']);
                 foreach ($nodesCollection as $node) {
                     $ownerId = $node['ownerid'];
                     if($ownerId){

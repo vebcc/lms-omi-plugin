@@ -13,14 +13,14 @@ require_once 'DataProvider/NetworkDeviceProvider.php';
 
 class OMI
 {
-/*    private $db;
-    private $lms;*/
+    /*    private $db;
+        private $lms;*/
 
-/*    public function __construct()
-    {
-        $this->db = LMSDB::getInstance();
-        $this->lms = LMS::getInstance();
-    }*/
+    /*    public function __construct()
+        {
+            $this->db = LMSDB::getInstance();
+            $this->lms = LMS::getInstance();
+        }*/
 
     public function getFromOmiModule($type, $params)
     {
@@ -51,6 +51,24 @@ class OMI
                 break;
             case 'getNetworkDevices':
                 $result = $this->getNetworkDevices();
+                break;
+            case 'getGponZtePluginOnus':
+                $result = $this->getGponZtePluginOnus();
+                break;
+            case 'getGponZtePluginOnusChecksum':
+                $result = $this->getGponZtePluginOnusChecksum();
+                break;
+            case 'getCustomers':
+                $result = $this->getCustomers();
+                break;
+            case 'getCustomersChecksum':
+                $result = $this->getCustomersChecksum();
+                break;
+            case 'getNodes':
+                $result = $this->getNodes();
+                break;
+            case 'getNodesChecksum':
+                $result = $this->getNodesChecksum();
                 break;
         }
 
@@ -165,5 +183,95 @@ class OMI
             return ['exception' => 'Cant get networkDevices', 'code' => 16];
         }
         return $networkDevices;
+    }
+
+    public function getGponZtePluginOnus()
+    {
+        global $LMS, $DB;
+
+        $onus = $DB->GetAll('SELECT gpononu.id, gpononu.serialnumber, gpononu.nodeid, gpononu.onuid, gpononu2olt.netdevid, gpononu2olt.numport, gpononu2customers.customerid FROM gpononu Left JOIN gpononu2olt ON gpononu2olt.gpononuid = gpononu.id LEFT JOIN gpononu2customers ON gpononu2customers.gpononuid = gpononu.id');
+
+        if (!$onus) {
+            return ['exception' => 'Cant get onus', 'code' => 17];
+        }
+
+        foreach ($onus as $key => $value) {
+            $checksum = md5(json_encode($value));
+            $onus[$key]['checksum'] = $checksum;
+        }
+
+        return $onus;
+    }
+
+    public function getGponZtePluginOnusChecksum()
+    {
+        global $LMS, $DB;
+
+        $onus = $DB->GetAll('SELECT gpononu.id, gpononu.serialnumber, gpononu.nodeid, gpononu.onuid, gpononu2olt.netdevid, gpononu2olt.numport, gpononu2customers.customerid FROM gpononu Left JOIN gpononu2olt ON gpononu2olt.gpononuid = gpononu.id LEFT JOIN gpononu2customers ON gpononu2customers.gpononuid = gpononu.id');
+
+        if (!$onus) {
+            return ['exception' => 'Cant get onus', 'code' => 17];
+        }
+        return $onus;
+    }
+
+    public function getCustomers()
+    {
+        global $LMS, $DB;
+
+        $customers = $DB->GetAll('SELECT c.id, c.lastname, c.email, c.address, c.zip, c.city, c.countryid, c.post_name, c.post_address, c.post_city, c.post_countryid, c.deleted, c.invoice_address, c.invoice_zip, c.invoice_city, c.invoice_countryid, c.recipient_lastname, c.recipient_name, c.recipient_zip, c.recipient_city FROM customers as c;');
+
+        if (!$customers) {
+            return ['exception' => 'Cant get customers', 'code' => 18];
+        }
+
+        foreach ($customers as $key => $customer) {
+            $checksum = md5(json_encode($customer));
+            $customers[$key]['checksum'] = $checksum;
+        }
+
+        return $customers;
+    }
+
+    public function getCustomersChecksum()
+    {
+        global $LMS, $DB;
+
+        $customers = $DB->GetAll('SELECT c.id, c.lastname, c.email, c.address, c.zip, c.city, c.countryid, c.post_name, c.post_address, c.post_city, c.post_countryid, c.deleted, c.invoice_address, c.invoice_zip, c.invoice_city, c.invoice_countryid, c.recipient_lastname, c.recipient_name, c.recipient_zip, c.recipient_city FROM customers as c;');
+
+        if (!$customers) {
+            return ['exception' => 'Cant get customers', 'code' => 18];
+        }
+        return md5(json_encode($customers));
+    }
+
+    public function getNodes()
+    {
+        global $LMS, $DB;
+
+        $nodes = $DB->getAll('SELECT n.id, n.name, inet_ntoa(n.ipaddr) AS ip, n.ipaddr, n.ownerid, n.creationdate, n.moddate, n.netdev, n.location, n.location_city, n.location_street, n.location_house, n.location_flat, n.longitude, n.latitude, n.producer, n.model, n.sn, n.terc, n.simc, n.ulic, n.zip FROM nodes as n');
+
+        if (!$nodes) {
+            return ['exception' => 'Cant get customers', 'code' => 18];
+        }
+
+        foreach ($nodes as $key => $node) {
+            $checksum = md5(json_encode($node));
+            $nodes[$key]['checksum'] = $checksum;
+        }
+
+        return $nodes;
+    }
+
+    public function getNodesChecksum()
+    {
+        global $LMS, $DB;
+
+        $nodes = $DB->getAll('SELECT n.id, n.name, inet_ntoa(n.ipaddr) AS ip, n.ipaddr, n.ownerid, n.creationdate, n.moddate, n.netdev, n.location, n.location_city, n.location_street, n.location_house, n.location_flat, n.longitude, n.latitude, n.producer, n.model, n.sn, n.terc, n.simc, n.ulic, n.zip FROM nodes as n');
+
+        if (!$nodes) {
+            return ['exception' => 'Cant get customers', 'code' => 18];
+        }
+        return md5(json_encode($nodes));
     }
 }

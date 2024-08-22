@@ -4,22 +4,21 @@ require_once 'Repository/NetDevRepository.php';
 
 class NetDevProvider
 {
-    private $lms;
     private $repository;
 
     public function __construct()
     {
-        $this->lms = LMS::getInstance();
         $this->repository = new NetDevRepository();
 
     }
 
     public function getNetDevCollection()
     {
+        global $LMS, $DB;
         $netDevCollection = $this->repository->findNetDevCollection();
 
         if ($netDevCollection) {
-            $customerManager = new LMSCustomerManager($this->lms->getDb(), $this->lms->getAuth(), $this->lms->getCache(), $this->lms->getSyslog());
+            $customerManager = new LMSCustomerManager($LMS->getDb(), $LMS->getAuth(), $LMS->getCache(), $LMS->getSyslog());
 
             foreach ($netDevCollection as &$netDev) {
                 $netDev['customlinks'] = [];

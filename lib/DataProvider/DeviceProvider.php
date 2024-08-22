@@ -5,33 +5,23 @@ require_once 'DataProvider/CustomerProvider.php';
 
 class DeviceProvider
 {
-    private $lms;
     private $addressProvider;
     private $customerProvider;
 
     public function __construct()
     {
-        $this->lms = LMS::getInstance();
         $this->addressProvider = new AddressProvider();
         $this->customerProvider = new CustomerProvider();
     }
 
     public function getDevices()
     {
+        global $LMS, $DB;
         $devices = [];
-        $nodeCollection = $this->lms->GetNodeList();
-
-       /* unset(
-            $nodeCollection['total'],
-            $nodeCollection['order'],
-            $nodeCollection['direction'],
-            $nodeCollection['total'],
-            $nodeCollection['totalon'],
-            $nodeCollection['totaloff'],
-        );*/
+        $nodeCollection = $LMS->GetNodeList();
 
         foreach ($nodeCollection as $node) {
-            $fullNode = $this->lms->GetNode($node['id']);
+            $fullNode = $LMS->GetNode($node['id']);
 
             $owner = [];
             if($node['ownerid']){
@@ -46,10 +36,6 @@ class DeviceProvider
             $device = [
                 'lmsId' => $node['id'] ? (int)$node['id'] : null,
                 'name' => $node['name'],
-                'netDev' => $node['netdev'] ? (int)$node['netdev'] : null,
-                'netNode' => $node['netnodeid'] ? (int)$node['netnodeid'] : null,
-                'login' => $fullNode['name'],
-                'password' => $fullNode['passwd'],
                 'data' => [
                     'ip' => $node['ip'],
                     'mac' => $node['mac'],

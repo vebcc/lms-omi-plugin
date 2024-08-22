@@ -4,11 +4,9 @@ require_once 'Repository/UserRepository.php';
 
 class UserProvider
 {
-    private $lms;
     private $repository;
     public function __construct()
     {
-        $this->lms = LMS::getInstance();
         $this->repository = new UserRepository();
     }
 

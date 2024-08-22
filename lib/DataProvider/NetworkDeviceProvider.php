@@ -5,20 +5,18 @@ require_once 'DataProvider/CustomerProvider.php';
 
 class NetworkDeviceProvider
 {
-
-    private $lms;
     private $addressProvider;
     private $customerProvider;
 
     public function __construct()
     {
-        $this->lms = LMS::getInstance();
         $this->addressProvider = new AddressProvider();
         $this->customerProvider = new CustomerProvider();
     }
 
     public function getNetworkDevices()
     {
+        global $LMS, $DB;
         $networkDevices = [];
         $netDevProvider = new NetDevProvider();
 
@@ -43,19 +41,19 @@ class NetworkDeviceProvider
                 ];
             } else {
                 if($ownerId){
-                    $locationAddressId = $this->lms->GetCustomerAddress((int)$ownerId, DEFAULT_LOCATION_ADDRESS);
+                    $locationAddressId = $LMS->GetCustomerAddress((int)$ownerId, DEFAULT_LOCATION_ADDRESS);
                     if (!$locationAddressId) {
-                        $locationAddressId = $this->lms->GetCustomerAddress((int)$ownerId, BILLING_ADDRESS);
+                        $locationAddressId = $LMS->GetCustomerAddress((int)$ownerId, BILLING_ADDRESS);
                     }
                 }else{
-                    $nodesCollection = $this->lms->GetNetDevLinkedNodes($netDev['id']);
+                    $nodesCollection = $LMS->GetNetDevLinkedNodes($netDev['id']);
                     if(!$nodesCollection){
                         continue;
                     }
                     foreach ($nodesCollection as $node) {
-                        $locationAddressId = $this->lms->GetCustomerAddress((int)$node['ownerid'], DEFAULT_LOCATION_ADDRESS);
+                        $locationAddressId = $LMS->GetCustomerAddress((int)$node['ownerid'], DEFAULT_LOCATION_ADDRESS);
                         if(!$locationAddressId){
-                            $locationAddressId = $this->lms->GetCustomerAddress((int)$node['ownerid'], BILLING_ADDRESS);
+                            $locationAddressId = $LMS->GetCustomerAddress((int)$node['ownerid'], BILLING_ADDRESS);
                         }
                         $ownerId = $node['ownerid'];
                         if($locationAddressId){
@@ -76,7 +74,7 @@ class NetworkDeviceProvider
             }
 
             if(!$ownerId){
-                $nodesCollection = $this->lms->GetNetDevLinkedNodes($netDev['id']);
+                $nodesCollection = $LMS->GetNetDevLinkedNodes($netDev['id']);
                 if(!$nodesCollection){
                     continue;
                 }

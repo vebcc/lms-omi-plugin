@@ -4,12 +4,10 @@ require_once 'Repository/AddressRepository.php';
 
 class AddressProvider
 {
-    private $lms;
     private $repository;
 
     public function __construct()
     {
-        $this->lms = LMS::getInstance();
         $this->repository = new AddressRepository();
 
     }

@@ -3,16 +3,11 @@
 
 class NetDevRepository
 {
-    private $db;
-
-    public function __construct()
-    {
-        $this->db = LMSDB::getInstance();
-    }
 
     public function findNetDevCollection()
     {
-        return $this->db->GetAll('SELECT d.id, d.name,
+        global $LMS, $DB;
+        return $DB->GetAll('SELECT d.id, d.name,
 				d.description, d.producer, d.model, m.type AS devtype, t.name AS devtypename,
 				d.serialnumber, d.ports, d.ownerid, d.longitude, d.latitude, 
 				d.invprojectid, p.name AS project, d.status,
