@@ -210,16 +210,16 @@ class OMI
         $onus = $DB->GetAll('SELECT gpononu.id, gpononu.serialnumber, gpononu.nodeid, gpononu.onuid, gpononu2olt.netdevid, gpononu2olt.numport, gpononu2customers.customerid FROM gpononu Left JOIN gpononu2olt ON gpononu2olt.gpononuid = gpononu.id LEFT JOIN gpononu2customers ON gpononu2customers.gpononuid = gpononu.id');
 
         if (!$onus) {
-            return ['exception' => 'Cant get onus', 'code' => 17];
+            return ['exception' => 'Cant get onus', 'code' => 18];
         }
-        return $onus;
+        return md5(json_encode($onus));
     }
 
     public function getCustomers()
     {
         global $LMS, $DB;
 
-        $customers = $DB->GetAll('SELECT c.id, c.lastname, c.email, c.address, c.zip, c.city, c.countryid, c.post_name, c.post_address, c.post_city, c.post_countryid, c.deleted, c.invoice_address, c.invoice_zip, c.invoice_city, c.invoice_countryid, c.recipient_lastname, c.recipient_name, c.recipient_zip, c.recipient_city FROM customers as c;');
+        $customers = $DB->GetAll('SELECT c.id, c.lastname, c.name, c.email, c.address, c.zip, c.city, c.countryid, c.post_name, c.post_address, c.post_city, c.post_countryid, c.deleted, c.invoice_address, c.invoice_zip, c.invoice_city, c.invoice_countryid, c.recipient_lastname, c.recipient_name, c.recipient_zip, c.recipient_city FROM customers as c;');
 
         if (!$customers) {
             return ['exception' => 'Cant get customers', 'code' => 18];
@@ -237,7 +237,7 @@ class OMI
     {
         global $LMS, $DB;
 
-        $customers = $DB->GetAll('SELECT c.id, c.lastname, c.email, c.address, c.zip, c.city, c.countryid, c.post_name, c.post_address, c.post_city, c.post_countryid, c.deleted, c.invoice_address, c.invoice_zip, c.invoice_city, c.invoice_countryid, c.recipient_lastname, c.recipient_name, c.recipient_zip, c.recipient_city FROM customers as c;');
+        $customers = $DB->GetAll('SELECT c.id, c.lastname, c.name, c.email, c.address, c.zip, c.city, c.countryid, c.post_name, c.post_address, c.post_city, c.post_countryid, c.deleted, c.invoice_address, c.invoice_zip, c.invoice_city, c.invoice_countryid, c.recipient_lastname, c.recipient_name, c.recipient_zip, c.recipient_city FROM customers as c;');
 
         if (!$customers) {
             return ['exception' => 'Cant get customers', 'code' => 18];

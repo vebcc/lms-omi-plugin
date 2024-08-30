@@ -79,7 +79,7 @@
     let $omiCustomerId = null;
 
     if (searchParams.has('id')) {
-        $omiCustomerId = searchParams.get('id');
+        $omiDeviceId = searchParams.get('id');
     }
 
     let $omiOMToken = '{$omioltmanagertoken}';
@@ -93,8 +93,8 @@
 
 <script type="text/javascript">
 
-    function getOnuCollection(customerID, token, url) {
-        runRequest(customerID, token, url);
+    function getOnuCollection(deviceID, token, url) {
+        runRequest(deviceID, token, url);
     }
 
     function injectToLMS(result) {
@@ -124,7 +124,6 @@
 
             let statusPhysicalTimeAgo = timeAgo(new Date(Date.parse(element['lastStatusDatetime'])));
 
-            let onuId = element['id'] ? element['id'] : '';
             let mac = element['mac'] ? element['mac'] : '';
             let serial = element['serial'] ? element['serial'] : '';
             let model = element['model'] ? element['model'] : '';
@@ -137,10 +136,8 @@
                 classNow = 'lucid';
             }
 
-            let url = $omiOMUrl + "/onu/" + onuId + $omiParams;
-
             changesTable.append(
-                "<tr onmouseover=\"addClass(this,'highlight');\" onmouseout=\"removeClass(this,'highlight');\" class=\"lms-ui-tab-table-row lms-omi-row " + classNow + "\" onclick=\"return self.location.href='" + url + "'\" >" +
+                "<tr class=\"lms-ui-tab-table-row " + classNow + "\">" +
                 "<td>" + element['address'] + "<br>" + element['locationAddress'] + "</td>" +
                 "<td style=\"border-left: 0px;\">" + mac + "<br>" + serial + "</td>" +
                 "<td style=\"border-left: 0px;\">" + model + "</td>" +
@@ -160,8 +157,8 @@
 
     }
 
-    function runRequest(customerID, token, url) {
-        let url1 = url + '/onu/lms/get/onus?type=customer&id=' + customerID;
+    function runRequest(deviceID, token, url) {
+        let url1 = url + '/onu/lms/get/onus?type=device&id=' + deviceID;
 
         $.ajax({
             method: 'GET',
@@ -281,9 +278,8 @@
 
 <script type="text/javascript">
     $(document).ready(function() {
-        if ($omiCustomerId && $omiOMToken && $omiOMUrl) {
-            getOnuCollection($omiCustomerId, $omiOMToken, $omiOMUrl);
+        if ($omiDeviceId && $omiOMToken && $omiOMUrl) {
+            getOnuCollection($omiDeviceId, $omiOMToken, $omiOMUrl);
         }
     });
-
 </script>
