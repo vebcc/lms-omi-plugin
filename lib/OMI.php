@@ -49,7 +49,7 @@ class OMI
         return $result;
     }
 
-    public function getFromApiModule(string $type, array $params): array
+    public function getFromApiModule(string $type, array $params)
     {
         $api = new API();
 
