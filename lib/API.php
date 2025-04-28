@@ -251,4 +251,30 @@ class API
         return md5(json_encode($customers));
     }
 
+    private function getTariffs(): array
+    {
+        $tariffs = $this->lms->GetTariffs();
+
+        if (!$tariffs) {
+            return ['exception' => 'Cant get tariffs', 'code' => 18];
+        }
+
+        foreach ($tariffs as $key => $tariff) {
+            $checksum = md5(json_encode($tariff));
+            $tariffs[$key]['checksum'] = $checksum;
+        }
+
+        return $tariffs;
+    }
+
+    public function getTariffsChecksum()
+    {
+        $tariffs = $this->lms->GetTariffs();
+        if (!$tariffs) {
+            return ['exception' => 'Cant get tariffs', 'code' => 18];
+        }
+
+        return md5(json_encode($tariffs));
+    }
+
 }
