@@ -1,5 +1,8 @@
 <?php
 
+require_once 'DataProvider/NetDevProvider.php';
+require_once 'DataProvider/AddressProvider.php';
+require_once 'DataProvider/CustomerProvider.php';
 
 class API
 {
@@ -97,23 +100,79 @@ class API
 
     private function getNetDevCollection(): array
     {
-        $netDev = $this->lms->GetNetDevList();
+        $netDevProvider = new NetDevProvider();
+        $addressProvider = new AddressProvider();
+        $customerProvider = new CustomerProvider();
 
-        if (!$netDev) {
+        $netDevCollection = $netDevProvider->getNetDevCollection();
+
+        unset(
+            $netDevCollection['total'],
+            $netDevCollection['order'],
+            $netDevCollection['direction'],
+        );
+
+        if (!$netDevCollection) {
             return ['exception' => 'Cant get network devices', 'code' => 18];
         }
 
-        foreach ($netDev as $key => $dev) {
-            $checksum = md5(json_encode($dev));
-            $netDev[$key]['checksum'] = $checksum;
+        foreach ($netDevCollection as $key => $netDev) {
+            $ownerId = $netDev['ownerid'];
+
+            $locationAddress = [];
+
+            if ($netDev['street_ident'] && $netDev['city_ident']) {
+                $locationAddress = [
+                    'cityIdent' => $netDev['city_ident'],
+                    'streetIdent' => $netDev['street_ident'],
+                    'location_house' => $netDev['location_house']
+                ];
+            } else {
+                if($ownerId){
+                    $locationAddressId = $this->lms->GetCustomerAddress((int)$ownerId, DEFAULT_LOCATION_ADDRESS);
+                    if (!$locationAddressId) {
+                        $locationAddressId = $this->lms->GetCustomerAddress((int)$ownerId, BILLING_ADDRESS);
+                    }
+                }else{
+                    $nodesCollection = $this->lms->GetNetDevLinkedNodes($netDev['id']);
+                    foreach ($nodesCollection as $node) {
+                        $locationAddressId = $this->lms->GetCustomerAddress((int)$node['ownerid'], DEFAULT_LOCATION_ADDRESS);
+                        if(!$locationAddressId){
+                            $locationAddressId = $this->lms->GetCustomerAddress((int)$node['ownerid'], BILLING_ADDRESS);
+                        }
+                        $ownerId = $node['ownerid'];
+                        if($locationAddressId){
+                            break;
+                        }
+                    }
+                }
+
+                if ($locationAddressId) {
+                    $locationAddressIdents = $addressProvider->getAddressByAddressId($locationAddressId);
+
+                    $locationAddress = [
+                        'cityIdent' => (int)$locationAddressIdents['cityIdent'],
+                        'streetIdent' => (int)$locationAddressIdents['streetIdent'],
+                        'location_house' => $locationAddressIdents['house']
+                    ];
+                }
+            }
+
+            $locationAddress['longitude'] = $netDev['longitude'];
+            $locationAddress['latitude'] = $netDev['latitude'];
+
+            $netDevCollection[$key]['locationAddress'] = $locationAddress;
+
+            $checksum = md5(json_encode($netDevCollection[$key]));
+            $netDevCollection[$key]['checksum'] = $checksum;
         }
 
-        return $netDev;
+        return $netDevCollection;
     }
 
     private function getNetDevChecksum()
     {
-        $netDev = $this->lms->GetNetDevList();
+        $netDev = $this->getNetDevCollection();
         if (!$netDev) {
             return ['exception' => 'Cant get network devices', 'code' => 18];
         }
@@ -149,6 +208,8 @@ class API
 
     private function getCustomerList(): array
     {
+        $addressProvider = new AddressProvider();
+
         $customers = $this->lms->getCustomerList([]);
 
         if (!$customers) {
@@ -156,7 +217,24 @@ class API
         }
 
         foreach ($customers as $key => $customer) {
-            $checksum = md5(json_encode($customer));
+            $locationAddress = [];
+            $locationAddressId = $this->lms->GetCustomerAddress((int)$customer['id'], DEFAULT_LOCATION_ADDRESS);
+            if (!$locationAddressId) {
+                $locationAddressId = $this->lms->GetCustomerAddress((int)$customer['id'], BILLING_ADDRESS);
+            }
+
+            if ($locationAddressId) {
+                $locationAddressIdents = $addressProvider->getAddressByAddressId($locationAddressId);
+
+                $locationAddress = [
+                    'cityIdent' => (int)$locationAddressIdents['cityIdent'],
+                    'streetIdent' => (int)$locationAddressIdents['streetIdent'],
+                    'location_house' => $locationAddressIdents['house']
+                ];
+            }
+
+            $customers[$key]['locationAddress'] = $locationAddress;
+            $checksum = md5(json_encode($customers[$key]));
             $customers[$key]['checksum'] = $checksum;
         }
 
@@ -165,12 +243,38 @@ class API
 
     private function getCustomerChecksum()
     {
-        $customers = $this->lms->getCustomerList([]);
+        $customers = $this->getCustomerList();
         if (!$customers) {
             return ['exception' => 'Cant get customers', 'code' => 18];
         }
 
         return md5(json_encode($customers));
+    }
+
+    private function getTariffs(): array
+    {
+        $tariffs = $this->lms->GetTariffs();
+
+        if (!$tariffs) {
+            return ['exception' => 'Cant get tariffs', 'code' => 18];
+        }
+
+        foreach ($tariffs as $key => $tariff) {
+            $checksum = md5(json_encode($tariff));
+            $tariffs[$key]['checksum'] = $checksum;
+        }
+
+        return $tariffs;
+    }
+
+    public function getTariffsChecksum()
+    {
+        $tariffs = $this->lms->GetTariffs();
+        if (!$tariffs) {
+            return ['exception' => 'Cant get tariffs', 'code' => 18];
+        }
+
+        return md5(json_encode($tariffs));
     }
 
 }
