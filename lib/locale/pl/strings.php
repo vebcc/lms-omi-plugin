@@ -17,6 +17,7 @@ $_LANG['OltManager - information review'] = 'OltManager - tylko odczyt';
 $_LANG['OltManager - LMS API full access'] = 'OltManager - pełny dostęp do modułu LMS API wtyczki';
 $_LANG['OltManager - OMI API full access'] = 'OltManager - pełny dostęp do modułu OMI API wtyczki';
 $_LANG['OltManager customer ONU list'] = 'OltManager - lista ONU klienta';
+$_LANG['OltManager device ONU list'] = 'OltManager - lista ONU urządzenia';
 $_LANG['entity.onu.status.type.level.0'] = 'Informacyjny';
 $_LANG['entity.onu.status.type.level.1'] = 'Aktywny';
 $_LANG['entity.onu.status.type.level.2'] = 'Zasilanie';
