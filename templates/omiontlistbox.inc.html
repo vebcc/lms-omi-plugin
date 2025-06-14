@@ -38,7 +38,7 @@
         <div class="lms-ui-tab-header-cell">
             <img SRC="img/LMSOmiPlugin/olt_manager.ico" alt="" class="lms-ui-sortable-handle"
                  style="max-height: 20px; max-width: auto;">
-            <strong>{trans('OltManager customer ONU list')} (<span class="onu-counter-span">0</span>):</strong>
+            <strong>{trans($omioltmanagersectiontitle)} (<span class="onu-counter-span">0</span>):</strong>
 
 
         </div>
@@ -95,18 +95,19 @@
     <!--
     let searchParams = new URLSearchParams(window.location.search);
 
-    let $omiCustomerId = null;
+    let $omiUrlId = null;
 
     if (searchParams.has('id')) {
-        $omiCustomerId = searchParams.get('id');
+        $omiUrlId = searchParams.get('id');
     }
 
     let $omiOMToken = '{$omioltmanagertoken}';
     let $omiOMUrl = '{$omioltmanagerurl}';
-
-    let $omiOnuId = null;
-
+    let $ominewTab = '{$omioltmanagernewtab}';
     let $omiParams = '{$omioltmanagerparams}';
+    let $omiSection = '{$omioltmanagersection}';
+    let $omiSectionTitle = '{$omioltmanagersectiontitle}';
+    let $omiOnuLinkParams = '{$omioltmanageronulinkparams}';
     //-->
 
 </script>
@@ -116,8 +117,21 @@
 <script type="text/javascript">
     (function ($) {
         $(document).ready(function () {
-            if ($omiCustomerId && $omiOMToken && $omiOMUrl) {
-                getOnuCollection($omiCustomerId, $omiOMToken, $omiOMUrl);
+            if ($omiUrlId && $omiOMToken && $omiOMUrl) {
+                switch ($omiSection) {
+                    case 'customer':
+                        getOnuCollectionByCustomerId($omiUrlId, $omiOMToken, $omiOMUrl);
+                        break;
+                    case 'device':
+                        getOnuCollectionByDeviceId($omiUrlId, $omiOMToken, $omiOMUrl);
+                        break;
+                    case 'networkdevice':
+                        getOnuCollectionByNetworkDeviceId($omiUrlId, $omiOMToken, $omiOMUrl);
+                        break;
+                    default:
+                        console.log('Unknown section: ' + $omiSection);
+                }
+
             }
         });
     })(jQuery);
