@@ -15,10 +15,17 @@ class OmiNodeHandler
         $params = "";
         $omi = LMSOmiPlugin::getOmiInstance();
         $isAutomaticLoginEnabled = ConfigHelper::getConfig('omi.olt_manager_automatic_login', false);
-        if($isAutomaticLoginEnabled === "true"){
+        if($isAutomaticLoginEnabled === "true" || $isAutomaticLoginEnabled === true || $isAutomaticLoginEnabled == 1){
             $isAutomaticLoginEnabled = true;
         }else{
             $isAutomaticLoginEnabled = false;
+        }
+
+        $isOpenInNewTabEnabled = ConfigHelper::getConfig('omi.olt_manager_open_in_new_tab', false);
+        if($isOpenInNewTabEnabled === "true" || $isOpenInNewTabEnabled === true || $isOpenInNewTabEnabled == 1){
+            $isOpenInNewTabEnabled = true;
+        }else{
+            $isOpenInNewTabEnabled = false;
         }
 
         if($isAutomaticLoginEnabled){
@@ -29,9 +36,11 @@ class OmiNodeHandler
 
         $SMARTY->assign('omioltmanagerurl', ConfigHelper::getConfig('omi.olt_manager_url'));
         $SMARTY->assign('omioltmanagertoken', ConfigHelper::getConfig('omi.olt_manager_token'));
-        $SMARTY->assign('omioltmanagerdevice', 'device');
+        $SMARTY->assign('omioltmanageronulinkparams', ConfigHelper::getConfig('omi.olt_manager_onu_link_params', '?enabled=1'));
+        $SMARTY->assign('omioltmanagersection', 'device');
+        $SMARTY->assign('omioltmanagersectiontitle', 'OltManager device ONU list');
+        $SMARTY->assign('omioltmanagernewtab', $isOpenInNewTabEnabled);
         $SMARTY->assign('omioltmanagerparams', $params);
-
 
     }
 }
