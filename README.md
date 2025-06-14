@@ -83,6 +83,14 @@ przypisane żadnej ze wskazanych grup.
 Podajemy ID grupy komputera, które chcemy zignorować. Można podać wiele ID grup oddzielając je przecinkiem np. "1,2,3".
 > omi.node_access_configuration_ignore_groups
 
+Linki do OltManager w Node, NetDev i Customer otwierają się w nowej karcie
+Domyślnie "false", zmiana na true powoduje otwieranie linków do OltManager w nowej karcie
+>omi.olt_manager_open_in_new_tab
+
+Dodatkowe parametry, jakie mają być dodawane podczas filtrowania listy Onu.
+Domyślnie `?enabled=1`.
+>omi.olt_manager_onu_link_params
+
 ## Uprawnienia
 
 Do poprawnej pracy OltManager'a należy utworzyć konto w systemie LMS i nadać mu
