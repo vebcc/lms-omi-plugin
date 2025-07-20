@@ -1,6 +1,5 @@
 <?php
 
-
 /**
  * LMSOmiPlugin
  *
@@ -56,6 +55,36 @@ class LMSOmiPlugin extends LMSPlugin
             'customerinfo_before_display' => [
                 'class' => 'OmiCustomerHandler',
                 'method' => 'customerInfoBeforeDisplay'
+            ],
+            /////////////////////////////////////////
+            'nodeedit_after_submit' => [
+                'class' => 'OmiNodeHandler',
+                'method' => 'nodeEditAfterSubmit'
+            ],
+            'nodeadd_after_submit' => [
+                'class' => 'OmiNodeHandler',
+                'method' => 'nodeAddAfterSubmit'
+            ],
+            'customeredit_after_submit' => [
+                'class' => 'OmiCustomerHandler',
+                'method' => 'customerEditAfterSubmit'
+            ],
+            'customeradd_after_submit' => [
+                'class' => 'OmiCustomerHandler',
+                'method' => 'customerAddAfterSubmit'
+            ],
+            'customerassignmentadd_after_submit' => [
+                'class' => 'OmiCustomerHandler',
+                'method' => 'customerAssignmentAddAfterSubmit'
+            ],
+            'customerassignmentedit_after_submit' => [
+                'class' => 'OmiCustomerHandler',
+                'method' => 'customerAssignmentEditAfterSubmit'
+            ],
+            /////////////////////////////////////
+            'rtticketview_before_display' => [
+                'class' => 'OmiTicketHandler',
+                'method' => 'ticketViewBeforeDisplay'
             ],
         ];
     }
