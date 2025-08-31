@@ -29,6 +29,64 @@
     .status-color-level-4 {
         color: #dc3545 !important;
     }
+
+    .lms-modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.5);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+    }
+
+    .lms-modal {
+        background: #fff;
+        border-radius: 8px;
+        max-width: 400px;
+        width: 100%;
+        padding: 20px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        font-family: sans-serif;
+    }
+
+    .lms-modal-header {
+        font-size: 18px;
+        font-weight: bold;
+        margin-bottom: 12px;
+    }
+
+    .lms-modal-body {
+        margin-bottom: 20px;
+        font-size: 14px;
+        color: #333;
+    }
+
+    .lms-modal-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+    }
+
+    .lms-btn {
+        padding: 6px 14px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+    }
+
+    .lms-btn-confirm {
+        background: #2d8a34;
+        color: white;
+    }
+
+    .lms-btn-cancel {
+        background: #ccc;
+        color: black;
+    }
+
+
 </style>
 
 <div id="omionus" data-label="Lista onu klienta" class="lms-ui-tab-container lms-ui-sortable general-omi-text">
@@ -53,14 +111,14 @@
                     <div class="lms-ui-tab-table-wrapper col-2">
                         <div class="lms-ui-tab-table-column name">
                             <strong>ID:</strong>
-                            <br> Adres:
+                            <br> Adres: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                         </div>
                         <div class="lms-ui-tab-table-column description">
-                            MAC:<br>Serial:
+                            MAC:<br>Serial:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                         </div>
                     </div>
                     <div class="lms-ui-tab-table-column id">
-                        Model:
+                        Model:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                     </div>
                     <div class="lms-ui-tab-table-wrapper col-2">
                         <div class="lms-ui-tab-table-column id">
@@ -74,6 +132,9 @@
                             Sygnał OLT:
                         </div>
                     </div>
+                    <div class="lms-ui-tab-table-column id">
+                        Funkcje:
+                    </div>
                 </div>
 
                 <!-- <div class="lms-ui-tab-table-column buttons">
@@ -83,6 +144,27 @@
 
         </div>
 
+    </div>
+    <div class="lms-modal-overlay" id="lmsConfirmModal">
+        <div class="lms-modal">
+            <div class="lms-modal-header">Potwierdzenie</div>
+            <div class="lms-modal-body" id="lmsConfirmMessage"></div>
+            <div class="lms-modal-actions">
+                <button class="lms-btn lms-btn-cancel" id="lmsConfirmCancel">Anuluj</button>
+                <button class="lms-btn lms-btn-confirm" id="lmsConfirmOk">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal informacji -->
+    <div class="lms-modal-overlay" id="lmsInfoModal">
+        <div class="lms-modal">
+            <div class="lms-modal-header" id="lmsInfoHeader">Informacja</div>
+            <div class="lms-modal-body" id="lmsInfoMessage"></div>
+            <div class="lms-modal-actions">
+                <button class="lms-btn lms-btn-confirm" id="lmsInfoOk">OK</button>
+            </div>
+        </div>
     </div>
     <script>
         if (getCookie("omi-onu-panel-nodeinfo") == "1") {
@@ -131,6 +213,85 @@
                     default:
                         console.log('Unknown section: ' + $omiSection);
                 }
+
+                function showConfirm(message, onConfirm) {
+                    const overlay = document.getElementById("lmsConfirmModal");
+                    const msgBox = document.getElementById("lmsConfirmMessage");
+                    const btnOk = document.getElementById("lmsConfirmOk");
+                    const btnCancel = document.getElementById("lmsConfirmCancel");
+
+                    msgBox.textContent = message;
+                    overlay.style.display = "flex";
+
+                    function cleanup() {
+                        overlay.style.display = "none";
+                        btnOk.removeEventListener("click", okHandler);
+                        btnCancel.removeEventListener("click", cancelHandler);
+                    }
+
+                    function okHandler() {
+                        cleanup();
+                        onConfirm();
+                    }
+
+                    function cancelHandler() {
+                        cleanup();
+                    }
+
+                    btnOk.addEventListener("click", okHandler);
+                    btnCancel.addEventListener("click", cancelHandler);
+                }
+
+                function showInfo(title, message) {
+                    const overlay = document.getElementById("lmsInfoModal");
+                    const msgBox = document.getElementById("lmsInfoMessage");
+                    const header = document.getElementById("lmsInfoHeader");
+                    const btnOk = document.getElementById("lmsInfoOk");
+
+                    header.textContent = title;
+                    msgBox.textContent = message;
+                    overlay.style.display = "flex";
+
+                    function cleanup() {
+                        overlay.style.display = "none";
+                        btnOk.removeEventListener("click", okHandler);
+                    }
+
+                    function okHandler() {
+                        cleanup();
+                    }
+
+                    btnOk.addEventListener("click", okHandler);
+                }
+
+                // delegacja zdarzeń żeby działało dla nowych elementów
+                $(document).on('click', '.onu-func-btn', function (e) {
+                    e.preventDefault();
+                    let url = $(this).data('url');
+                    let name = $(this).data('name');
+
+                    showConfirm(`Czy na pewno chcesz uruchomić funkcję: ` + name + `?`, () => {
+                        fetch(url, {
+                            method: 'GET',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-AUTH-TOKEN': $omiOMToken
+                            }
+                        })
+                            .then(resp => resp.json())
+                            .then(data => {
+                                if (data.result === "success") {
+                                    showInfo("Sukces", `Funkcja "` + name + `" wykonana poprawnie ✅`);
+                                } else {
+                                    showInfo("Błąd", `Błąd przy wykonywaniu "` + name + `" ❌`);
+                                }
+                            })
+                            .catch(err => {
+                                showInfo("Błąd sieci", String(err));
+                            });
+                    });
+                });
+
 
             }
         });

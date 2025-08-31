@@ -100,6 +100,23 @@
                 }
             }
 
+            let onuFunctions = '';
+
+            if (element['functions'] && Object.keys(element['functions']).length > 0) {
+                onuFunctions = Object.values(element['functions']).map(func => {
+                    return `
+            <button class="onu-func-btn"
+                data-url="${$omiOMUrl}${func.url}"
+                data-name="${func.name}">
+                ${func.name}
+            </button>
+        `;
+                }).join(' ');
+            } else {
+                onuFunctions = 'Brak';
+            }
+
+
             let statusPhysicalTimeAgo = timeAgo(new Date(Date.parse(lastPhysicalStatusTime)));
 
             let onuLink = "<div class=\"lms-ui-tab-table-row\" data-target-url=\"" + $omiOMUrl + "/onu/" + onuId + $omiParams + "\">\n";
@@ -133,6 +150,9 @@
                 "                            <br>\n" +
                 "                            <span class='signal-color-general olt-signal-value'>" + lastOnuSignalOlt +
                 "                        </div>\n" +
+                    "                    <div class=\"lms-ui-tab-table-column id\">\n" +
+                    "                        " + onuFunctions +
+                    "                    </div>\n" +
                 "                    </div>\n" +
                 "                </div>\n" +
                 "            </div>");
