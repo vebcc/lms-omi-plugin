@@ -119,10 +119,9 @@
 
             let statusPhysicalTimeAgo = timeAgo(new Date(Date.parse(lastPhysicalStatusTime)));
 
-            let onuLink = "<div class=\"lms-ui-tab-table-row\" data-target-url=\"" + $omiOMUrl + "/onu/" + onuId + $omiParams + "\">\n";
-
-            if($ominewTab){
-                onuLink = "<div class=\"lms-ui-tab-table-row\" onclick=\"window.open('" + $omiOMUrl + "/onu/" + onuId + $omiParams + "', '_blank')\">\n";
+            let onuLink = `<div class="lms-ui-tab-table-row om-ui-button" data-target-om-url="${$omiOMUrl}/onu/${onuId}${$omiParams}">\n`;
+            if ($ominewTab) {
+                onuLink = `<div class="lms-ui-tab-table-row om-ui-button" data-target-om-url="${$omiOMUrl}/onu/${onuId}${$omiParams}" data-newtab="1">\n`;
             }
 
             changesTable.append(onuLink +

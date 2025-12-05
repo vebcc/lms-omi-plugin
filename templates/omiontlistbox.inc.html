@@ -267,6 +267,7 @@
                 // delegacja zdarzeń żeby działało dla nowych elementów
                 $(document).on('click', '.onu-func-btn', function (e) {
                     e.preventDefault();
+                    e.stopPropagation();
                     let url = $(this).data('url');
                     let name = $(this).data('name');
 
@@ -292,6 +293,21 @@
                     });
                 });
 
+                $(document).on('click', '.om-ui-button', function (e) {
+                    console.log('xxxxxxxxxxxxooo');
+                    // jeśli klik nastąpił w przycisku (lub wewnątrz niego) to nic nie rób
+                    if ($(e.target).closest('.onu-func-btn').length) {
+                        return;
+                    }
+                    const url = $(this).data('target-om-url');
+                    if (!url) return;
+                    const newTab = $(this).data('newtab');
+                    if (newTab) {
+                        window.open(url, '_blank');
+                    } else {
+                        window.location.href = url;
+                    }
+                });
 
             }
         });
