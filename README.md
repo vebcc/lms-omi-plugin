@@ -120,8 +120,6 @@ Obecnie obsługiwane funkcje:
   w module 'omideviceerrorlist'.
 - `getMyToken` - pobiera token zalogowanego użytkownika wykorzystywany do autoryzacji OM.
 - `getUserTokens` - pobiera tokeny wszystkich włączonych użytkowników systemu.
-- `getGponZtePluginOnus` - pobiera listę urządzeń ONU z pluginu GponZtePlugin.
-- `getGponZtePluginOnusChecksum` - pobiera sumę kontrolną listy urządzeń ONU z pluginu GponZtePlugin.
 - `getMyLogin` - pobiera login zalogowanego użytkownika.
 - `getPPPoECredentials` - pobiera dane do autoryzacji PPPoE. (Login, hasło)
   Dodatkowe parametry:
@@ -166,6 +164,8 @@ Obecnie obsługiwane funkcje:
 - `getNodeAccessConfigurationCollectionChecksum` - pobiera sumę kontrolną taryf komputerów w systemie LMS.
 - `getNodeGroupCollection` - pobiera listę grup komputerów w systemie LMS.
 - `getNodeGroupCollectionChecksum` - pobiera sumę kontrolną grup komputerów w systemie LMS.
+- `getGponZtePluginOnus` - pobiera listę urządzeń ONU z pluginu GponZtePlugin.
+- `getGponZtePluginOnusChecksum` - pobiera sumę kontrolną listy urządzeń ONU z pluginu GponZtePlugin.
   Przykłady:
 
 > /?m=omiapidatagetter&type=GetNetDevList
