@@ -22,12 +22,6 @@ class API
     public function getFromApi(string $type, array $params = [])
     {
         $object = API::class;
-        if (key_exists('lmsDirect', $params)) {
-            if ($params['lmsDirect'] == 1) {
-                $object = $this->lms;
-            }
-            unset($params['lmsDirect']);
-        }
 
         if (!method_exists($object, $type)) {
             return ['exception' => 'method with name: ' . $type . ' dont exist!', 'code' => 20];
