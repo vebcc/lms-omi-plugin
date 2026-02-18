@@ -107,13 +107,6 @@ Inne uprawnienia:
 Nie jest zalecane nadawanie uprawnienia `omi_full_access`,`omi_api_data_getter`
 , `omi_data_getter` nikomu poza kontem do integracji.
 
-## API
-
-API dzieli się na 2 sekcje. 1 służy do pobierania gotowych danych do systemu OltManager.
-2 sekcja pozwala na pobieranie surowych danych w formie json z systemu.
-Z parametrem 'lmsDirect=1', dodatkowo pozwala uruchamiać funkcje bezpośrednio
-z głównej klasy 'LMS'.
-
 ### OMI API
 
 Obecnie obsługiwane funkcje:
@@ -164,10 +157,6 @@ nie jest obecnie możliwe w żadnej formie, ponieważ obecnie jest przekazywana 
 ### LMS API
 
 > /?m=omiapidatagetter&type={functionName}{otherParams}
-
-W przypadku podania `&lmsDirect=1` są wykonywane funkcje bezpośrednio z klasy
-LMS. Bez podania tego parametru wykonywane są funkcje z klasy API wtyczki.
-
 
 Obecnie obsługiwane funkcje:
 
