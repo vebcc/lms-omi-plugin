@@ -66,18 +66,18 @@ token i wprowadzić go do LMS'a.
 Domyślnie i obecnie jedyny wspierany: "description"
 > omi.provider_type
 
-(Opcjonalny) Automatyczne logowanie do systemu OltManager. 
+(Opcjonalny) Automatyczne logowanie do systemu OltManager.
 Domyślnie "false", zmiana na true powoduje automatyczne dodawanie tokenów autoryzacyjnych do adresu url
 przycisków. Należy pamiętać że przed włączeniem w LMS, należy włączyć logowanie przez "Integration User",
 w systemie OltManager.
 > omi.olt_manager_automatic_login
 
-(Opcjonalny) Filtrowanie taryf klienta po dniu naliczania. 
+(Opcjonalny) Filtrowanie taryf klienta po dniu naliczania.
 Jeśli ustawione i nie jest `null` to `getNodeAccessConfigurationCollection` pobierze wyłącznie taryfy klienta, które
 mają ustawione naliczanie na podany dzień. np "1" - naliczanie co miesiąc 1 dnia. Cala reszta zostanie pominięta.
 > omi.node_access_configuration_at
 
-(Opcjonalny) Filtrowanie taryf klienta po grupie komputera. 
+(Opcjonalny) Filtrowanie taryf klienta po grupie komputera.
 Jeśli ustawione i nie jest `null` to `getNodeAccessConfigurationCollection` pobierze wyłącznie komputery, które nie są
 przypisane żadnej ze wskazanych grup.
 Podajemy ID grupy komputera, które chcemy zignorować. Można podać wiele ID grup oddzielając je przecinkiem np. "1,2,3".
@@ -85,11 +85,11 @@ Podajemy ID grupy komputera, które chcemy zignorować. Można podać wiele ID g
 
 Linki do OltManager w Node, NetDev i Customer otwierają się w nowej karcie
 Domyślnie "false", zmiana na true powoduje otwieranie linków do OltManager w nowej karcie
->omi.olt_manager_open_in_new_tab
+> omi.olt_manager_open_in_new_tab
 
 Dodatkowe parametry, jakie mają być dodawane podczas filtrowania listy Onu.
 Domyślnie `?enabled=1`.
->omi.olt_manager_onu_link_params
+> omi.olt_manager_onu_link_params
 
 ## Uprawnienia
 
@@ -120,6 +120,8 @@ Obecnie obsługiwane funkcje:
   w module 'omideviceerrorlist'.
 - `getMyToken` - pobiera token zalogowanego użytkownika wykorzystywany do autoryzacji OM.
 - `getUserTokens` - pobiera tokeny wszystkich włączonych użytkowników systemu.
+- `getGponZtePluginOnus` - pobiera listę urządzeń ONU z pluginu GponZtePlugin.
+- `getGponZtePluginOnusChecksum` - pobiera sumę kontrolną listy urządzeń ONU z pluginu GponZtePlugin.
 - `getMyLogin` - pobiera login zalogowanego użytkownika.
 - `getPPPoECredentials` - pobiera dane do autoryzacji PPPoE. (Login, hasło)
   Dodatkowe parametry:
@@ -164,6 +166,7 @@ Obecnie obsługiwane funkcje:
 - `getNodeAccessConfigurationCollectionChecksum` - pobiera sumę kontrolną taryf komputerów w systemie LMS.
 - `getNodeGroupCollection` - pobiera listę grup komputerów w systemie LMS.
 - `getNodeGroupCollectionChecksum` - pobiera sumę kontrolną grup komputerów w systemie LMS.
-Przykłady:
+  Przykłady:
+
 > /?m=omiapidatagetter&type=GetNetDevList
 > /?m=omiapidatagetter&lmsDirect=1&type=GetNetDevList&argorder=name,desc
