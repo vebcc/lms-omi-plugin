@@ -52,6 +52,12 @@ class OMI
             case 'getNetworkDevices':
                 $result = $this->getNetworkDevices();
                 break;
+            case 'getGponZtePluginOnus':
+                $result = $this->getGponZtePluginOnus();
+                break;
+            case 'getGponZtePluginOnusChecksum':
+                $result = $this->getGponZtePluginOnusChecksum();
+                break;
         }
 
         return $result;
@@ -165,5 +171,35 @@ class OMI
             return ['exception' => 'Cant get networkDevices', 'code' => 16];
         }
         return $networkDevices;
+    }
+
+    public function getGponZtePluginOnus()
+    {
+        global $LMS, $DB;
+
+        $onus = $DB->GetAll('SELECT gpononu.id, gpononu.serialnumber, gpononu.nodeid, gpononu.onuid, gpononu2olt.netdevid, gpononu2olt.numport, gpononu2customers.customerid FROM gpononu Left JOIN gpononu2olt ON gpononu2olt.gpononuid = gpononu.id LEFT JOIN gpononu2customers ON gpononu2customers.gpononuid = gpononu.id');
+
+        if (!$onus) {
+            return ['exception' => 'Cant get onus', 'code' => 17];
+        }
+
+        foreach ($onus as $key => $value) {
+            $checksum = md5(json_encode($value));
+            $onus[$key]['checksum'] = $checksum;
+        }
+
+        return $onus;
+    }
+
+    public function getGponZtePluginOnusChecksum()
+    {
+        global $LMS, $DB;
+
+        $onus = $DB->GetAll('SELECT gpononu.id, gpononu.serialnumber, gpononu.nodeid, gpononu.onuid, gpononu2olt.netdevid, gpononu2olt.numport, gpononu2customers.customerid FROM gpononu Left JOIN gpononu2olt ON gpononu2olt.gpononuid = gpononu.id LEFT JOIN gpononu2customers ON gpononu2customers.gpononuid = gpononu.id');
+
+        if (!$onus) {
+            return ['exception' => 'Cant get onus', 'code' => 18];
+        }
+        return md5(json_encode($onus));
     }
 }
