@@ -144,16 +144,6 @@ Czyli sprawdzane adresy to:
 - `78:31:FF:27:FF:99`
 - `78:31:FF:27:FF:98`
 
-{functionName} - nazwa funkcji w klasie LMS.
-W ten sposób możliwe jest uruchomienie dowolnej funkcji.
-Dodatkowo przez utworzenie Refleksji pobierane są wymagane zmienne z funkcji,
-przez co możliwe jest podanie dodatkowych parametrów. Np. można dodać `&argorder=asc`.
-Do wykonywanej funkcji zostanie dodany argument 'order' z wartościa `asc`.
-Należy pamiętać, że jeżeli w funkcji argument nosi nazwę np. `params` to należy
-podać `argparams`. (Wynika to z możliwości z duplikowania podstawowych argumentów API)
-(Dodatkowo wspiera wyłącznie proste parametry, co oznacza że przekazywanie tablic
-nie jest obecnie możliwe w żadnej formie, ponieważ obecnie jest przekazywana surowa wartość)
-
 ### LMS API
 
 > /?m=omiapidatagetter&type={functionName}{otherParams}
