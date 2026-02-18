@@ -119,6 +119,10 @@ class API
         }
 
         foreach ($netDevCollection as $key => $netDev) {
+            if (!is_array($netDev) || !isset($netDev['id'])) {
+                continue;
+            }
+
             $ownerId = $netDev['ownerid'];
 
             $locationAddress = [];
