@@ -157,8 +157,8 @@ class API
                     $locationAddressIdents = $addressProvider->getAddressByAddressId($locationAddressId);
 
                     $locationAddress = [
-                        'cityIdent' => (int)$locationAddressIdents['cityIdent'],
-                        'streetIdent' => (int)$locationAddressIdents['streetIdent'],
+                        'cityIdent' => (int)$locationAddressIdents['cityident'],
+                        'streetIdent' => (int)$locationAddressIdents['streetident'],
                         'location_house' => $locationAddressIdents['house']
                     ];
                 }
