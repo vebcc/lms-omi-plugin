@@ -214,45 +214,45 @@ class API
     {
         $addressProvider = new AddressProvider();
         $customers = $this->lms->getCustomerList([]);
-    
+
         if (!$customers || !is_array($customers)) {
             return ['exception' => 'Cant get customers', 'code' => 18];
         }
-    
+
         foreach ($customers as $key => $customer) {
-    
-            // — jeśli nie jest tablicą lub nie ma id — pomiń
             if (!is_array($customer) || !isset($customer['id'])) {
                 continue;
             }
-    
+
             $locationAddress = [];
-    
+
             $locationAddressId = $this->lms->GetCustomerAddress((int)$customer['id'], DEFAULT_LOCATION_ADDRESS);
             if (!$locationAddressId) {
                 $locationAddressId = $this->lms->GetCustomerAddress((int)$customer['id'], BILLING_ADDRESS);
             }
-    
+
             if ($locationAddressId) {
                 $locationAddressIdents = $addressProvider->getAddressByAddressId($locationAddressId);
-    
-                if (is_array($locationAddressIdents)
-                    && isset($locationAddressIdents['cityIdent'])
-                    && isset($locationAddressIdents['streetIdent'])
+                if (
+                    is_array($locationAddressIdents)
+                    && isset($locationAddressIdents['cityident'])
+                    && array_key_exists('streetident', $locationAddressIdents)
                 ) {
                     $locationAddress = [
-                        'cityIdent'     => (int)$locationAddressIdents['cityIdent'],
-                        'streetIdent'   => (int)$locationAddressIdents['streetIdent'],
-                        'location_house'=> $locationAddressIdents['house'] ?? null,
+                        'cityIdent' => (int)$locationAddressIdents['cityident'],
+                        'streetIdent' => $locationAddressIdents['streetident'] !== null
+                            ? (int)$locationAddressIdents['streetident']
+                            : null,
+                        'location_house' => $locationAddressIdents['house'] ?? null,
                     ];
                 }
             }
-    
+
             $customers[$key]['locationAddress'] = $locationAddress;
             $customers[$key]['checksum'] = md5(json_encode($customers[$key]));
         }
 
-    return $customers;
+        return $customers;
     }
 
     private function getCustomerChecksum()

@@ -15,8 +15,8 @@ class AddressRepository
         return $this->db->GetRow(
             'SELECT
                 a.house as house,
-                lst.ident as streetIdent,
-                lc.ident as cityIdent
+                lst.ident as streetident,
+                lc.ident as cityident
             FROM vaddresses a
             LEFT JOIN location_cities lc ON lc.id = a.city_id
             LEFT JOIN location_streets lst ON lst.id = a.street_id
