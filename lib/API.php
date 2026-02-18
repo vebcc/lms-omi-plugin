@@ -155,12 +155,19 @@ class API
 
                 if ($locationAddressId) {
                     $locationAddressIdents = $addressProvider->getAddressByAddressId($locationAddressId);
-
-                    $locationAddress = [
-                        'cityIdent' => (int)$locationAddressIdents['cityident'],
-                        'streetIdent' => (int)$locationAddressIdents['streetident'],
-                        'location_house' => $locationAddressIdents['house']
-                    ];
+                    if (
+                        is_array($locationAddressIdents)
+                        && isset($locationAddressIdents['cityident'])
+                        && array_key_exists('streetident', $locationAddressIdents)
+                    ) {
+                        $locationAddress = [
+                            'cityIdent' => (int)$locationAddressIdents['cityident'],
+                            'streetIdent' => $locationAddressIdents['streetident'] !== null
+                                ? (int)$locationAddressIdents['streetident']
+                                : null,
+                            'location_house' => $locationAddressIdents['house'] ?? null,
+                        ];
+                    }
                 }
             }
 
