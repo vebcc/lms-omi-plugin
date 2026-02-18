@@ -79,6 +79,10 @@ class API
         }
 
         foreach ($nodes as $key => $node) {
+            if (!is_array($node) || !isset($node['id'])) {
+                continue;
+            }
+
             $checksum = md5(json_encode($node));
             $nodes[$key]['checksum'] = $checksum;
         }
