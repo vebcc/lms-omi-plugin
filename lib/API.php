@@ -188,13 +188,16 @@ class API
 
     private function getNetNodeCollection(): array
     {
-        $netNode = $this->lms->GetNetNodeList([], []);
+        $netNode = $this->lms->GetNetNodeList([], 'name,asc');
 
         if (!$netNode) {
             return ['exception' => 'Cant get network nodes', 'code' => 18];
         }
 
         foreach ($netNode as $key => $node) {
+            if (!is_array($node) || !isset($node['id'])) {
+                continue;
+            }
             $checksum = md5(json_encode($node));
             $netNode[$key]['checksum'] = $checksum;
         }
