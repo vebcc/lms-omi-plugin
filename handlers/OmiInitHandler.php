@@ -18,6 +18,8 @@ class OmiInitHandler
 
         $SMARTY = $hook_data;
 
+        $SMARTY->registerClass('LMSOmiPlugin', 'LMSOmiPlugin');
+
         return $hook_data;
     }
 
@@ -104,37 +106,38 @@ class OmiInitHandler
             null,
             [
                 'omi' => [
-                    'omideviceerrorlist',
+                    'omiapiproxy',
+                    'omiredirect',
                 ]
             ]
         );
         $access->insertPermission($permission, AccessRights::FIRST_FORBIDDEN_PERMISSION);
 
         $permission = new Permission(
-            'omi_api_data_getter',
+            'omi_api_user',
             trans('OltManager - LMS API full access'),
             '^((omiapidata)(getter))$',
             null,
             [
                 'omi' => [
                     'omiapidatagetter',
-                ]
-            ]
-        );
-        $access->insertPermission($permission, AccessRights::FIRST_FORBIDDEN_PERMISSION);
-
-        $permission = new Permission(
-            'omi_data_getter',
-            trans('OltManager - OMI API full access'),
-            '^((omidata)(getter))$',
-            null,
-            [
-                'omi' => [
                     'omidatagetter',
                 ]
             ]
         );
         $access->insertPermission($permission, AccessRights::FIRST_FORBIDDEN_PERMISSION);
 
+        $permission = new Permission(
+            'omi_device_error_list',
+            trans('OltManager - device error list access'),
+            '^((omiapi)(proxy))$',
+            null,
+            [
+                'omi' => [
+                    'omideviceerrorlist',
+                ]
+            ]
+        );
+        $access->insertPermission($permission, AccessRights::FIRST_FORBIDDEN_PERMISSION);
     }
 }

@@ -1,6 +1,5 @@
 <!--// $Id$ //-->
 {$xajax}
-
 <style>
     .status-color-general {
         font-weight: bold;
@@ -85,11 +84,9 @@
         background: #ccc;
         color: black;
     }
-
-
 </style>
 
-<div id="omionus" data-label="Lista onu klienta" class="lms-ui-tab-container lms-ui-sortable general-omi-text">
+<div id="olt-manager-onu" data-label="OltManager - Lista onu klienta" class="lms-ui-tab-container lms-ui-sortable general-omi-text">
 
     <div class="lms-ui-tab-header lmsbox-titlebar" data-lmsbox-content="omi-onu-panel-nodeinfo">
 
@@ -183,10 +180,9 @@
         $omiUrlId = searchParams.get('id');
     }
 
-    let $omiOMToken = '{$omioltmanagertoken}';
+    let $omiProxyUrl = '{$omiproxyurl}';
     let $omiOMUrl = '{$omioltmanagerurl}';
     let $ominewTab = '{$omioltmanagernewtab}';
-    let $omiParams = '{$omioltmanagerparams}';
     let $omiSection = '{$omioltmanagersection}';
     let $omiSectionTitle = '{$omioltmanagersectiontitle}';
     let $omiOnuLinkParams = '{$omioltmanageronulinkparams}';
@@ -199,16 +195,20 @@
 <script type="text/javascript">
     (function ($) {
         $(document).ready(function () {
-            if ($omiUrlId && $omiOMToken && $omiOMUrl) {
+            if ($omiUrlId && $omiProxyUrl) {
                 switch ($omiSection) {
                     case 'customer':
-                        getOnuCollectionByCustomerId($omiUrlId, $omiOMToken, $omiOMUrl);
+                        getOnuCollectionByCustomerId($omiUrlId, $omiProxyUrl);
                         break;
                     case 'device':
-                        getOnuCollectionByDeviceId($omiUrlId, $omiOMToken, $omiOMUrl);
+                        getOnuCollectionByDeviceId($omiUrlId, $omiProxyUrl);
                         break;
                     case 'networkdevice':
-                        getOnuCollectionByNetworkDeviceId($omiUrlId, $omiOMToken, $omiOMUrl);
+                        getOnuCollectionByNetworkDeviceId($omiUrlId, $omiProxyUrl);
+                        break;
+                    case 'rt':
+                        console.log('jeszcze nie wiem :)');
+                        // tu bedzie albo by device id albo by customer id w zalezosci czy do zgloszenia przypisany jest komputer
                         break;
                     default:
                         console.log('Unknown section: ' + $omiSection);
@@ -268,15 +268,19 @@
                 $(document).on('click', '.onu-func-btn', function (e) {
                     e.preventDefault();
                     e.stopPropagation();
-                    let url = $(this).data('url');
+                    let actionEndpoint = $(this).data('action-endpoint');
                     let name = $(this).data('name');
 
                     showConfirm(`Czy na pewno chcesz uruchomić funkcję: ` + name + `?`, () => {
-                        fetch(url, {
+                        // Wywołanie przez proxy – token pozostaje na serwerze
+                        let proxyActionUrl = $omiProxyUrl
+                            + '&endpoint=' + encodeURIComponent(actionEndpoint)
+                            + '&method=GET';
+
+                        fetch(proxyActionUrl, {
                             method: 'GET',
                             headers: {
-                                'Content-Type': 'application/json',
-                                'X-AUTH-TOKEN': $omiOMToken
+                                'Content-Type': 'application/json'
                             }
                         })
                             .then(resp => resp.json())

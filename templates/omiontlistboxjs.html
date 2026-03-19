@@ -1,41 +1,47 @@
 {literal}
 <script type="text/javascript">
 
-    function getOnuCollectionByCustomerId(customerID, token, url) {
-        let param = '&ownerLmsId=' + customerID;
-        runRequest(param, token, url);
+    /**
+     * Pobiera listę ONU dla danego klienta, odpytując lokalny proxy LMS.
+     * Token do OltManager API nigdy nie opuszcza serwera.
+     */
+    function getOnuCollectionByCustomerId(customerID, proxyUrl) {
+        let apiEndpoint = 'api/v1/onu/' + $omiOnuLinkParams + '&ownerLmsId=' + customerID;
+        runRequest(apiEndpoint, proxyUrl);
     }
 
-    function getOnuCollectionByDeviceId(deviceID, token, url) {
-        let param = '&deviceLmsId=' + deviceID;
-        runRequest(param, token, url);
+    function getOnuCollectionByDeviceId(deviceID, proxyUrl) {
+        let apiEndpoint = 'api/v1/onu/' + $omiOnuLinkParams + '&deviceLmsId=' + deviceID;
+        runRequest(apiEndpoint, proxyUrl);
     }
 
-    function getOnuCollectionByNetworkDeviceId(deviceID, token, url) {
-        let param = '&networkDeviceLmsId=' + deviceID;
-        runRequest(param, token, url);
+    function getOnuCollectionByNetworkDeviceId(deviceID, proxyUrl) {
+        let apiEndpoint = 'api/v1/onu/' + $omiOnuLinkParams + '&networkDeviceLmsId=' + deviceID;
+        runRequest(apiEndpoint, proxyUrl);
     }
 
-    function runRequest(lastParam, token, url) {
-        let url1 = url + '/api/v1/onu/' + $omiOnuLinkParams + lastParam;
+    /**
+     * Odpytuje serwer-side proxy LMS, który przekazuje żądanie do OltManagera.
+     * @param {string} apiEndpoint  - ścieżka API, np. "api/v1/onu/?enabled=1&ownerLmsId=42"
+     * @param {string} proxyUrl     - URL lokalnego endpointu proxy, np. "?m=omiapiproxy"
+     */
+    function runRequest(apiEndpoint, proxyUrl) {
+        let separator = (proxyUrl.indexOf('?') === -1) ? '?' : '&';
+        let requestUrl = proxyUrl + separator + 'endpoint=' + encodeURIComponent(apiEndpoint);
 
         $.ajax({
             method: 'GET',
-            url: url1,
-            headers: {
-                'X-AUTH-TOKEN': token
-            },
+            url: requestUrl,
             data: '',
             contentType: 'application/json',
             success: function (data) {
                 injectToLMS(data);
             },
             error: function (xhr, status, error) {
-                if (error === 'Not Found') {
+                if (xhr.status === 404 || error === 'Not Found') {
                     $("div#super-omi-table").append("<div class=\"lms-ui-tab-table-row\"><span style='font-size: larger'>Brak dopisanych urządzeń ONU.</span></div>");
                 } else {
-                    console.log(status);
-                    console.log(error);
+                    console.log('[OMI proxy] status:', status, 'error:', error);
                 }
             }
         });
@@ -44,10 +50,6 @@
     function injectToLMS(result) {
 
         console.log(result);
-
-        if (!result['data']) {
-            return;
-        }
 
         if (!result['data']) {
             return;
@@ -104,24 +106,27 @@
 
             if (element['functions'] && Object.keys(element['functions']).length > 0) {
                 onuFunctions = Object.values(element['functions']).map(func => {
-                    return `
-            <button class="onu-func-btn"
-                data-url="${$omiOMUrl}${func.url}"
+                    // data-action-endpoint przechowuje tylko ścieżkę API (bez tokena).
+                    // Wywołanie akcji idzie przez proxy – token pozostaje na serwerze.
+                    let actionPath = func.url.replace(/^\//, '');
+                    return `<button class="onu-func-btn"
+                data-action-endpoint="${actionPath}"
                 data-name="${func.name}">
                 ${func.name}
-            </button>
-        `;
+            </button>`;
                 }).join(' ');
             } else {
                 onuFunctions = 'Brak';
             }
 
-
             let statusPhysicalTimeAgo = timeAgo(new Date(Date.parse(lastPhysicalStatusTime)));
 
-            let onuLink = `<div class="lms-ui-tab-table-row om-ui-button" data-target-om-url="${$omiOMUrl}/onu/${onuId}${$omiParams}">\n`;
+            // Link prowadzi do OltManagera – URL publiczny bez tokena.
+            // Autologowanie obsługiwane jest przez omiredirect.php po stronie serwera.
+            let onuTargetUrl = $omiOMUrl + '/onu/' + onuId;
+            let onuLink = `<div class="lms-ui-tab-table-row om-ui-button" data-target-om-url="${onuTargetUrl}">\n`;
             if ($ominewTab) {
-                onuLink = `<div class="lms-ui-tab-table-row om-ui-button" data-target-om-url="${$omiOMUrl}/onu/${onuId}${$omiParams}" data-newtab="1">\n`;
+                onuLink = `<div class="lms-ui-tab-table-row om-ui-button" data-target-om-url="${onuTargetUrl}" data-newtab="1">\n`;
             }
 
             changesTable.append(onuLink +
@@ -149,9 +154,9 @@
                 "                            <br>\n" +
                 "                            <span class='signal-color-general olt-signal-value'>" + lastOnuSignalOlt +
                 "                        </div>\n" +
-                    "                    <div class=\"lms-ui-tab-table-column id\">\n" +
-                    "                        " + onuFunctions +
-                    "                    </div>\n" +
+                "                    </div>\n" +
+                "                    <div class=\"lms-ui-tab-table-column id\">\n" +
+                "                        " + onuFunctions +
                 "                    </div>\n" +
                 "                </div>\n" +
                 "            </div>");

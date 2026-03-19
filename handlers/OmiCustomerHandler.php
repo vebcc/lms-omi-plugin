@@ -5,13 +5,10 @@ class OmiCustomerHandler
     public function customerInfoBeforeDisplay(array $hook_data)
     {
         $SMARTY = $hook_data['smarty'];
-        $params = "";
-        $omi = LMSOmiPlugin::getOmiInstance();
-        $isAutomaticLoginEnabled = ConfigHelper::getConfig('omi.olt_manager_automatic_login', false);
-        if($isAutomaticLoginEnabled === "true" || $isAutomaticLoginEnabled === true || $isAutomaticLoginEnabled == 1){
-            $isAutomaticLoginEnabled = true;
-        }else{
-            $isAutomaticLoginEnabled = false;
+
+        $resource_tabs = $SMARTY->getTemplateVars('resource_tabs');
+        if (isset($resource_tabs['olt-manager-onu']) && !$resource_tabs['olt-manager-onu']) {
+            return $hook_data;
         }
 
         $isOpenInNewTabEnabled = ConfigHelper::getConfig('omi.olt_manager_open_in_new_tab', false);
@@ -21,19 +18,16 @@ class OmiCustomerHandler
             $isOpenInNewTabEnabled = false;
         }
 
-        if($isAutomaticLoginEnabled){
-            $params.= '?x-auth-token='.ConfigHelper::getConfig('omi.olt_manager_token');
-            $params.= '&x-auth-additional-token='.$omi->getMyToken();
+        $onuLinkParams = ConfigHelper::getConfig('omi.olt_manager_onu_link_params', '?enabled=1');
 
-        }
+        $proxyUrl = '?m=omiapiproxy';
 
+        $SMARTY->assign('omiproxyurl', $proxyUrl);
         $SMARTY->assign('omioltmanagerurl', ConfigHelper::getConfig('omi.olt_manager_url'));
-        $SMARTY->assign('omioltmanagertoken', ConfigHelper::getConfig('omi.olt_manager_token'));
-        $SMARTY->assign('omioltmanageronulinkparams', ConfigHelper::getConfig('omi.olt_manager_onu_link_params', '?enabled=1'));
+        $SMARTY->assign('omioltmanageronulinkparams', $onuLinkParams);
         $SMARTY->assign('omioltmanagersection', 'customer');
         $SMARTY->assign('omioltmanagersectiontitle', 'OltManager customer ONU list');
         $SMARTY->assign('omioltmanagernewtab', $isOpenInNewTabEnabled);
-        $SMARTY->assign('omioltmanagerparams', $params);
 
         return $hook_data;
     }

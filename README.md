@@ -56,6 +56,13 @@ Do poprawnej pracy wtyczki niezbędne jest dodanie ustawień do systemu
 Pełny adres do aplikacji OltManager
 > omi.olt_manager_url
 
+(opcjonalne) bezpośredni IP serwera OltManagera np. 192.168.5.55 przydatne gdy DNS rozwiązuje się do lokalnego IP
+niedostępnego z serwera LMS (np. inny VLAN/podsieć)
+> omi.olt_manager_ip
+
+Czy weryfikować SSL po stronie OltManager'a true/false, domyślnie true
+> omi.ssl_verify
+
 Token do autoryzacji z systemu OltManager
 W systemie OltManager musi być dodane konto, które ze względów bezpieczeństwa
 powinno mieć uprawnienia wyłącznie do integracji LMS. Dodatkowo należy wygenerować
@@ -94,18 +101,22 @@ Domyślnie `?enabled=1`.
 ## Uprawnienia
 
 Do poprawnej pracy OltManager'a należy utworzyć konto w systemie LMS i nadać mu
-uprawnienie `omi_full_access`.
+uprawnienie `omi_api_user`.
+Użytkownik z wyłącznie tym uprawnieniem nie ma dostępu do systemu więc nie ma możliwości podglądu danych wrażliwych typu
+PESEL.
 
-Dodatkowym uprawnieniem jest omi_read_only, które pozwala na wejście do sekcji
-Urządzenia z błędami, czyli do modułu `omideviceerrorlist`.
+Uprawnienia dla użytkowników:
+
+- `omi_read_only` - uprawnienie to daje dostęp do listy urządzeń Onu z aplikacji.
+
+Pełne uprawnienia do modułu OltManager'a:
+
+- `omi_full_access` - pełne uprawnienia do pluginu.
 
 Inne uprawnienia:
 
-- `omi_api_data_getter` - pełne uprawnienia do modułu `omiapidatagetter` (API)
-- `omi_data_getter` - pełne uprawnienia do modułu `omidatagetter` (API)
-
-Nie jest zalecane nadawanie uprawnienia `omi_full_access`,`omi_api_data_getter`
-, `omi_data_getter` nikomu poza kontem do integracji.
+- `omi_device_error_list` - Nadaje uprawnienia do przeglądu listy urządzeń z błędami. Moduł ten jest użyteczny wyłącznie
+  dla klientów używających integratora z OltManagerem w postaci adresów onu w opisie komputera. Dla 99% instalacji nieużywany.
 
 ### OMI API
 

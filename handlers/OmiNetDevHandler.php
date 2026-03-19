@@ -12,15 +12,6 @@ class OmiNetDevHandler
 
     private function assignOmiData(Smarty $SMARTY)
     {
-        $params = "";
-        $omi = LMSOmiPlugin::getOmiInstance();
-        $isAutomaticLoginEnabled = ConfigHelper::getConfig('omi.olt_manager_automatic_login', false);
-        if($isAutomaticLoginEnabled === "true" || $isAutomaticLoginEnabled === true || $isAutomaticLoginEnabled == 1){
-            $isAutomaticLoginEnabled = true;
-        }else{
-            $isAutomaticLoginEnabled = false;
-        }
-
         $isOpenInNewTabEnabled = ConfigHelper::getConfig('omi.olt_manager_open_in_new_tab', false);
         if($isOpenInNewTabEnabled === "true" || $isOpenInNewTabEnabled === true || $isOpenInNewTabEnabled == 1){
             $isOpenInNewTabEnabled = true;
@@ -28,18 +19,17 @@ class OmiNetDevHandler
             $isOpenInNewTabEnabled = false;
         }
 
-        if($isAutomaticLoginEnabled){
-            $params.= '?x-auth-token='.ConfigHelper::getConfig('omi.olt_manager_token');
-            $params.= '&x-auth-additional-token='.$omi->getMyToken();
+        $onuLinkParams = ConfigHelper::getConfig('omi.olt_manager_onu_link_params', '?enabled=1');
 
-        }
+        // Proxy endpoint – zapytania do OltManager API idą przez serwer LMS.
+        // Token nigdy nie opuszcza serwera.
+        $proxyUrl = '?m=omiapiproxy';
 
+        $SMARTY->assign('omiproxyurl', $proxyUrl);
         $SMARTY->assign('omioltmanagerurl', ConfigHelper::getConfig('omi.olt_manager_url'));
-        $SMARTY->assign('omioltmanagertoken', ConfigHelper::getConfig('omi.olt_manager_token'));
-        $SMARTY->assign('omioltmanageronulinkparams', ConfigHelper::getConfig('omi.olt_manager_onu_link_params', '?enabled=1'));
+        $SMARTY->assign('omioltmanageronulinkparams', $onuLinkParams);
         $SMARTY->assign('omioltmanagersection', 'networkdevice');
         $SMARTY->assign('omioltmanagersectiontitle', 'OltManager device ONU list');
         $SMARTY->assign('omioltmanagernewtab', $isOpenInNewTabEnabled);
-        $SMARTY->assign('omioltmanagerparams', $params);
     }
 }
