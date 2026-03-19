@@ -20,6 +20,11 @@
         runRequest(apiEndpoint, proxyUrl);
     }
 
+    function getOnuCollection(proxyUrl) {
+        let apiEndpoint = 'api/v1/onu/' + $omiOnuLinkParams;
+        runRequest(apiEndpoint, proxyUrl);
+    }
+
     /**
      * Odpytuje serwer-side proxy LMS, który przekazuje żądanie do OltManagera.
      * @param {string} apiEndpoint  - ścieżka API, np. "api/v1/onu/?enabled=1&ownerLmsId=42"

@@ -195,20 +195,31 @@
 <script type="text/javascript">
     (function ($) {
         $(document).ready(function () {
-            if ($omiUrlId && $omiProxyUrl) {
+            if ($omiProxyUrl) {
                 switch ($omiSection) {
                     case 'customer':
+                        if(!$omiUrlId) {
+                            console.error('Brak ID dla sekcji customer');
+                            return;
+                        }
                         getOnuCollectionByCustomerId($omiUrlId, $omiProxyUrl);
                         break;
                     case 'device':
+                        if (!$omiUrlId) {
+                            console.error('Brak ID dla sekcji device');
+                            return;
+                        }
                         getOnuCollectionByDeviceId($omiUrlId, $omiProxyUrl);
                         break;
                     case 'networkdevice':
+                        if (!$omiUrlId) {
+                            console.error('Brak ID dla sekcji networkdevice');
+                            return;
+                        }
                         getOnuCollectionByNetworkDeviceId($omiUrlId, $omiProxyUrl);
                         break;
-                    case 'rt':
-                        console.log('jeszcze nie wiem :)');
-                        // tu bedzie albo by device id albo by customer id w zalezosci czy do zgloszenia przypisany jest komputer
+                    case 'ticket':
+                        getOnuCollection($omiProxyUrl);
                         break;
                     default:
                         console.log('Unknown section: ' + $omiSection);
@@ -298,8 +309,6 @@
                 });
 
                 $(document).on('click', '.om-ui-button', function (e) {
-                    console.log('xxxxxxxxxxxxooo');
-                    // jeśli klik nastąpił w przycisku (lub wewnątrz niego) to nic nie rób
                     if ($(e.target).closest('.onu-func-btn').length) {
                         return;
                     }
