@@ -19,6 +19,13 @@ class OmiNetDevHandler
             $isOpenInNewTabEnabled = false;
         }
 
+        $isAutomaticLoginEnabled = ConfigHelper::getConfig('omi.olt_manager_automatic_login', false);
+        if($isAutomaticLoginEnabled === "true" || $isAutomaticLoginEnabled === true || $isAutomaticLoginEnabled == 1){
+            $isAutomaticLoginEnabled = true;
+        }else{
+            $isAutomaticLoginEnabled = false;
+        }
+
         $onuLinkParams = ConfigHelper::getConfig('omi.olt_manager_onu_link_params', '?enabled=1');
 
         // Proxy endpoint – zapytania do OltManager API idą przez serwer LMS.
@@ -31,5 +38,6 @@ class OmiNetDevHandler
         $SMARTY->assign('omioltmanagersection', 'networkdevice');
         $SMARTY->assign('omioltmanagersectiontitle', 'OltManager device ONU list');
         $SMARTY->assign('omioltmanagernewtab', $isOpenInNewTabEnabled);
+        $SMARTY->assign('omioltmanagerautoligin', $isAutomaticLoginEnabled);
     }
 }

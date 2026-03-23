@@ -35,6 +35,13 @@ class OmiTicketHandler
             $isOpenInNewTabEnabled = false;
         }
 
+        $isAutomaticLoginEnabled = ConfigHelper::getConfig('omi.olt_manager_automatic_login', false);
+        if($isAutomaticLoginEnabled === "true" || $isAutomaticLoginEnabled === true || $isAutomaticLoginEnabled == 1){
+            $isAutomaticLoginEnabled = true;
+        }else{
+            $isAutomaticLoginEnabled = false;
+        }
+
         $onuLinkParams = ConfigHelper::getConfig('omi.olt_manager_onu_link_params', '?enabled=1');
 
         if(strpos($onuLinkParams, '?') !== false){
@@ -51,6 +58,7 @@ class OmiTicketHandler
         $SMARTY->assign('omioltmanagersection', 'ticket');
         $SMARTY->assign('omioltmanagersectiontitle', 'OltManager ticket ONU list');
         $SMARTY->assign('omioltmanagernewtab', $isOpenInNewTabEnabled);
+        $SMARTY->assign('omioltmanagerautoligin', $isAutomaticLoginEnabled);
 
         return $hook_data;
     }

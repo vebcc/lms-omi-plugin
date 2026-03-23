@@ -18,6 +18,13 @@ class OmiCustomerHandler
             $isOpenInNewTabEnabled = false;
         }
 
+        $isAutomaticLoginEnabled = ConfigHelper::getConfig('omi.olt_manager_automatic_login', false);
+        if($isAutomaticLoginEnabled === "true" || $isAutomaticLoginEnabled === true || $isAutomaticLoginEnabled == 1){
+            $isAutomaticLoginEnabled = true;
+        }else{
+            $isAutomaticLoginEnabled = false;
+        }
+
         $onuLinkParams = ConfigHelper::getConfig('omi.olt_manager_onu_link_params', '?enabled=1');
 
         $proxyUrl = '?m=omiapiproxy';
@@ -28,6 +35,7 @@ class OmiCustomerHandler
         $SMARTY->assign('omioltmanagersection', 'customer');
         $SMARTY->assign('omioltmanagersectiontitle', 'OltManager customer ONU list');
         $SMARTY->assign('omioltmanagernewtab', $isOpenInNewTabEnabled);
+        $SMARTY->assign('omioltmanagerautoligin', $isAutomaticLoginEnabled);
 
         return $hook_data;
     }

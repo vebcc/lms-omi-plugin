@@ -3,13 +3,13 @@
 /**
  * omiapiproxy.php
  *
- * Server-side proxy do API OltManagera.
- * Zapytania do zewnętrznego API wychodzą z serwera LMS – token nigdy nie trafia do przeglądarki.
+ * Server-side proxy do API OltManagera oraz stron WWW.
+ * Zapytania do zewnetrznego API wychodza z serwera LMS - token nigdy nie trafia do przegladarki.
  *
  * Parametry GET:
- *   endpoint  – ścieżka API np. "api/v1/onu/?enabled=1&ownerLmsId=123"
- *   method    – GET (domyślnie) lub POST
- *
+ *   endpoint  - sciezka API/URL np. "api/v1/onu/?enabled=1&ownerLmsId=123" lub "onu/123"
+ *   method    - GET (domyslnie) lub POST
+ *   redirect  - "1" jesli endpoint ma byc przekierowany HTTP 302 do OltManagera
  */
 
 $layout['pagetitle'] = 'OMI - API Proxy';
@@ -50,19 +50,29 @@ if (empty($requestedEndpoint)) {
 
 $method = strtoupper(isset($_GET['method']) ? $_GET['method'] : 'GET');
 
-// Zbuduj pełny URL
+// Flaga trybu redirect (HTTP 302 do OltManagera).
+$isRedirectMode = isset($_GET['redirect']) && ($_GET['redirect'] === '1' || $_GET['redirect'] === true);
+
+// Zbuduj pelny URL
 $targetUrl = $oltManagerUrl . '/' . $requestedEndpoint;
 
-if ($isAutomaticLoginEnabled) {
-    $separator  = (strpos($targetUrl, '?') === false) ? '?' : '&';
-    $targetUrl .= $separator . 'x-auth-token=' . rawurlencode($token);
-    $targetUrl .= '&x-auth-additional-token=' . rawurlencode($omi->getMyToken());
+// W trybie redirect nie proxy'ujemy HTML - robimy realny redirect,
+// dzieki czemu CSS/JS laduja se bezposrednio z OltManagera.
+if ($isRedirectMode) {
+    if ($isAutomaticLoginEnabled) {
+        $separator = (strpos($targetUrl, '?') === false) ? '?' : '&';
+        $targetUrl .= $separator . 'x-auth-token=' . rawurlencode($token);
+        $targetUrl .= '&x-auth-additional-token=' . rawurlencode($omi->getMyToken());
+    }
+
+    header('Location: ' . $targetUrl, true, 302);
+    die;
 }
 
-// Wyciągnij hostname i port z URL – potrzebne do CURLOPT_RESOLVE
-$parsedUrl  = parse_url($oltManagerUrl);
-$urlHost    = $parsedUrl['host'] ?? '';
-$urlPort    = $parsedUrl['port'] ?? (($parsedUrl['scheme'] === 'https') ? 443 : 80);
+// Dla trybu API potrzebujemy host/port m.in. do CURLOPT_RESOLVE.
+$parsedUrl = parse_url($oltManagerUrl);
+$urlHost   = $parsedUrl['host'] ?? '';
+$urlPort   = $parsedUrl['port'] ?? (($parsedUrl['scheme'] ?? 'https') === 'https' ? 443 : 80);
 
 $headers = [
     'X-AUTH-TOKEN: ' . $token,
@@ -87,8 +97,12 @@ function omiProxyCurlRequest(
     $sslVersions = [
         CURL_SSLVERSION_DEFAULT,
         CURL_SSLVERSION_TLSv1_2,
-        CURL_SSLVERSION_TLSv1_3,
     ];
+
+    // TLS 1.3 moze nie byc dostepny na starszych wersjach PHP/cURL.
+    if (defined('CURL_SSLVERSION_TLSv1_3')) {
+        $sslVersions[] = CURL_SSLVERSION_TLSv1_3;
+    }
 
     $lastError = null;
     $lastErrno = null;
@@ -171,9 +185,8 @@ $result = omiProxyCurlRequest(
     $oltManagerDirectIp
 );
 
-header('Content-Type: application/json');
-
 if (!$result['success']) {
+    header('Content-Type: application/json');
     http_response_code(502);
     echo json_encode([
         'error'             => 'Upstream connection error',
@@ -189,6 +202,9 @@ if (!$result['success']) {
 }
 
 http_response_code($result['http_code']);
+
+// API mode - zwroc JSON
+header('Content-Type: application/json');
 echo $result['response'];
 die;
 

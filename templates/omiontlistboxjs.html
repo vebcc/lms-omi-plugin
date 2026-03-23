@@ -126,13 +126,27 @@
 
             let statusPhysicalTimeAgo = timeAgo(new Date(Date.parse(lastPhysicalStatusTime)));
 
-            // Link prowadzi do OltManagera – URL publiczny bez tokena.
-            // Autologowanie obsługiwane jest przez omiredirect.php po stronie serwera.
-            let onuTargetUrl = $omiOMUrl + '/onu/' + onuId;
-            let onuLink = `<div class="lms-ui-tab-table-row om-ui-button" data-target-om-url="${onuTargetUrl}">\n`;
-            if ($ominewTab) {
-                onuLink = `<div class="lms-ui-tab-table-row om-ui-button" data-target-om-url="${onuTargetUrl}" data-newtab="1">\n`;
+            // Normalizacja flagi "open in new tab" z wartości Smarty.
+            let isOpenInNewTab = ($ominewTab === 'true' || $ominewTab === true || $ominewTab == 1);
+
+            // Gdy open_in_new_tab jest włączone: otwieramy proxy redirect w nowej karcie.
+            // Proxy doda nagłówki autologowania (jeśli automatic_login jest włączone).
+            // Gdy open_in_new_tab jest wyłączone: zwykły bezpośredni link do OltManagera.
+            let onuTargetUrl;
+            if (isOpenInNewTab) {
+                onuTargetUrl = $omiProxyUrl
+                    + '&endpoint=' + encodeURIComponent('onu/' + onuId)
+                    + '&redirect=1';
+            } else {
+                onuTargetUrl = $omiOMUrl + '/onu/' + onuId;
             }
+
+            // Twórz div jako przycisk - link
+            let onuLink = `<div class="lms-ui-tab-table-row om-ui-button" data-target-om-url="${onuTargetUrl}"`;
+            if (isOpenInNewTab) {
+                onuLink += ` data-newtab="1"`;
+            }
+            onuLink += `>\n`;
 
             changesTable.append(onuLink +
                 "                <div class=\"lms-ui-tab-table-wrapper col-5\">\n" +
