@@ -12,7 +12,7 @@ class LMSOmiPlugin extends LMSPlugin
     const PLUGIN_DIRECTORY_NAME = 'LMSOmiPlugin';
     const PLUGIN_NAME = 'LMS Olt Manager Integration Plugin';
     const PLUGIN_ALIAS = 'olt-manager';
-    const PLUGIN_DESCRIPTION = 'Integracja z systemem OltManager';
+    const PLUGIN_DESCRIPTION = 'Integracja z systemem OltManager 1.9.0';
     const PLUGIN_AUTHOR = 'Krzysztof Masłowski &lt;krzysztof@maslowski.it&gt;';
     const PLUGIN_DOC_URL = 'https://docs.oltmanager.pl/books/oltmanager-dokumentacja/page/konfiguracja-integracji-lmsilms';
     const PLUGIN_REPO_URL = 'https://github.com/vebcc/lms-omi-plugin';
