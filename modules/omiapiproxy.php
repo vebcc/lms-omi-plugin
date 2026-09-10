@@ -31,6 +31,48 @@ $isAutomaticLoginEnabled = ($isAutomaticLoginEnabled === "true"
 $sslVerify = ConfigHelper::getConfig('omi.ssl_verify', true);
 $sslVerify = ($sslVerify === "true" || $sslVerify === true || $sslVerify == 1);
 
+/**
+ * Zwraca parametr wskazujacy instancje integracji OltManagera przypisana do tego LMS-a
+ * (np. "integrationSlug=lmsv2"), albo pusty string gdy nie skonfigurowano.
+ *
+ * Od czasu przejscia OltManagera na model wielu instancji integracji ten sam lms_id
+ * moze istniec w kilku instancjach LMS. Zapytania read dopasowujace ONU po lms_id
+ * musza wtedy wskazac, z ktorego LMS-a leca - inaczej OltManager zwroci sume trafien
+ * ze wszystkich instancji.
+ *
+ * Gdy podano oba ustawienia - wygrywa numeryczne id (tak jak po stronie OltManagera).
+ * Brak ustawien => pusty string => zachowanie jak wczesniej (bezpieczne przy 1 instancji).
+ */
+function omiResolveIntegrationInstanceParam(): string
+{
+    $instanceId = trim((string) ConfigHelper::getConfig('omi.integration_instance_id', ''));
+    if ($instanceId !== '' && strtolower($instanceId) !== 'null') {
+        return 'integrationInstanceId=' . rawurlencode($instanceId);
+    }
+
+    $slug = trim((string) ConfigHelper::getConfig('omi.integration_slug', ''));
+    if ($slug !== '' && strtolower($slug) !== 'null') {
+        return 'integrationSlug=' . rawurlencode($slug);
+    }
+
+    return '';
+}
+
+/**
+ * Czy dany endpoint to zapytanie read honorujace wskazanie instancji integracji.
+ * OltManager czyta integrationSlug / integrationInstanceId wylacznie na:
+ *   - GET|POST /api/v1/onu/          (lista ONU)
+ *   - GET|POST /onu/lms/get/onus     (uproszczona kolekcja ONU)
+ */
+function omiEndpointHonorsIntegrationInstance(string $endpoint): bool
+{
+    $path = strtolower(explode('?', $endpoint, 2)[0]);
+    $path = trim($path, '/');
+
+    return $path === 'api/v1/onu'
+        || $path === 'onu/lms/get/onus';
+}
+
 if (empty($oltManagerUrl) || empty($token)) {
     header('Content-Type: application/json');
     http_response_code(503);
@@ -52,6 +94,19 @@ $method = strtoupper(isset($_GET['method']) ? $_GET['method'] : 'GET');
 
 // Flaga trybu redirect (HTTP 302 do OltManagera).
 $isRedirectMode = isset($_GET['redirect']) && ($_GET['redirect'] === '1' || $_GET['redirect'] === true);
+
+// Doklej wskazanie instancji integracji (jesli skonfigurowano) do zapytan read
+// opartych o lms_id. Robimy to po stronie serwera, zeby miec pewnosc, ze parametr
+// jest poprawny i nie da sie go podmienic z przegladarki.
+$integrationInstanceParam = omiResolveIntegrationInstanceParam();
+if (
+    $integrationInstanceParam !== ''
+    && omiEndpointHonorsIntegrationInstance($requestedEndpoint)
+    && !preg_match('/[?&]integration(Slug|InstanceId)=/i', $requestedEndpoint)
+) {
+    $separator = (strpos($requestedEndpoint, '?') === false) ? '?' : '&';
+    $requestedEndpoint .= $separator . $integrationInstanceParam;
+}
 
 // Zbuduj pelny URL
 $targetUrl = $oltManagerUrl . '/' . $requestedEndpoint;

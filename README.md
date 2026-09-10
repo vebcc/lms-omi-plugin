@@ -98,6 +98,23 @@ Dodatkowe parametry, jakie mają być dodawane podczas filtrowania listy Onu.
 Domyślnie `?enabled=1`.
 > omi.olt_manager_onu_link_params
 
+(Opcjonalny) Slug instancji integracji OltManagera przypisanej do tego LMS-a.
+Od czasu przejścia OltManagera na model wielu instancji integracji ten sam `lms_id`
+może istnieć w kilku instancjach LMS podłączonych do jednego OltManagera. Jeśli
+ustawione, wtyczka dokleja `integrationSlug=<slug>` do zapytań o listę ONU
+(przez `?m=omiapiproxy`), dzięki czemu OltManager zawęża wynik do właściwej instancji.
+Slug znajdziesz w OltManager w `Konfiguracja → Integracje` (kolumna „Slug"); domyślna,
+zmigrowana z płaskich ustawień instancja ma slug `lmsv2`.
+Bez tego ustawienia (i bez `omi.integration_instance_id`) wtyczka zachowuje się jak
+wcześniej — nie wysyła parametru (bezpieczne przy jednej instancji).
+> omi.integration_slug
+
+(Opcjonalny) Numeryczne ID instancji integracji OltManagera - alternatywa dla
+`omi.integration_slug`. Jeśli ustawione, wtyczka dokleja `integrationInstanceId=<id>`.
+Gdy podano oba ustawienia, pierwszeństwo ma `omi.integration_instance_id`.
+ID znajdziesz w OltManager w `Konfiguracja → Integracje` (kolumna „ID").
+> omi.integration_instance_id
+
 ## Uprawnienia
 
 Do poprawnej pracy OltManager'a należy utworzyć konto w systemie LMS i nadać mu
