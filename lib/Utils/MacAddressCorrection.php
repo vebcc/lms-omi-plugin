@@ -75,20 +75,23 @@ class MacAddressCorrection
         $macID = substr($macAddress, 9);
 
         $macParts = explode(':', $macID);
-        foreach ($macParts as $key => $part) {
-            $macParts[$key] = (int)str_pad(hexdec($part), 2, '0', STR_PAD_LEFT);
+        $partCount = count($macParts);
+
+        // Potraktuj koncowe oktety jako jedna liczbe, przesun o $amount i rozloz z powrotem.
+        // Dzieki temu przeniesienie dziala w OBIE strony (poprzednia wersja obslugiwala tylko
+        // przepelnienie > 255, wiec downMacs / ujemny $amount dawal zepsuty adres).
+        $modulo = 1 << (8 * $partCount);
+
+        $value = 0;
+        foreach ($macParts as $part) {
+            $value = ($value << 8) | (hexdec($part) & 0xFF);
         }
 
-        $index = 2;
-        $macParts[$index] = $macParts[$index] + $amount;
-        if($macParts[$index] > 255) {
-            $macParts[$index] = $macParts[$index] - 256;
-            $macParts[$index-1] = $macParts[$index-1] + 1;
-        }
+        $value = (($value + (int)$amount) % $modulo + $modulo) % $modulo;
 
-        foreach ($macParts as $key => $part) {
-            $macParts[$key] = MACAddressCorrection::decToHex($part);
-
+        for ($i = $partCount - 1; $i >= 0; $i--) {
+            $macParts[$i] = self::decToHex($value & 0xFF);
+            $value >>= 8;
         }
 
         return $macVendorID . implode(':', $macParts);

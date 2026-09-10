@@ -37,22 +37,29 @@ class PPPoECredentialsProvider
 
     public function getPPPoECredentialsByMacAddress(string $mac, array $params): ?array
     {
-        $macCollection[] = $mac;
+        // Znormalizuj adres bazowy do formatu kanonicznego (AA:BB:CC:DD:EE:FF) - dopiero na
+        // takim adresie modifyMacAddress liczy poprawnie i dopiero taki adres pasuje do bazy LMS.
+        $baseMac = MacAddressCorrection::correct($mac, 'canonical');
+        if (!$baseMac) {
+            return null;
+        }
+
+        $macCollection = [$baseMac];
 
         if (key_exists('upMacs', $params)) {
             for ($i = 1; $i <= (int)$params['upMacs']; $i++) {
-                $macCollection[] = MacAddressCorrection::correct(MACAddressCorrection::modifyMacAddress($mac, $i), 'canonical');
+                $macCollection[] = MacAddressCorrection::correct(MacAddressCorrection::modifyMacAddress($baseMac, $i), 'canonical');
             }
         }
 
         if (key_exists('downMacs', $params)) {
             for ($i = 1; $i <= (int)$params['downMacs']; $i++) {
-                $macCollection[] = MacAddressCorrection::correct(MACAddressCorrection::modifyMacAddress($mac, $i * -1), 'canonical');
+                $macCollection[] = MacAddressCorrection::correct(MacAddressCorrection::modifyMacAddress($baseMac, $i * -1), 'canonical');
             }
         }
 
-        foreach ($macCollection as $mac) {
-            $nodeId = $this->lms->GetNodeIDByMAC($mac);
+        foreach ($macCollection as $candidateMac) {
+            $nodeId = $this->lms->GetNodeIDByMAC($candidateMac);
             if (!$nodeId) {
                 continue;
             }

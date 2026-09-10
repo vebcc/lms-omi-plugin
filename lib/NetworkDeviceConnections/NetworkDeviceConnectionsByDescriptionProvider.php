@@ -186,11 +186,20 @@ class NetworkDeviceConnectionsByDescriptionProvider implements NetworkDeviceConn
                 if ($locationAddressId) {
                     $locationAddressIdents = $this->addressProvider->getAddressByAddressId($locationAddressId);
 
-                    $locationAddress = [
-                        'cityIdent' => (int)$locationAddressIdents['cityIdent'],
-                        'streetIdent' => (int)$locationAddressIdents['streetIdent'],
-                        'location_house' => $locationAddressIdents['house']
-                    ];
+                    // AddressRepository zwraca klucze: cityident / streetident / house (male litery)
+                    if (
+                        is_array($locationAddressIdents)
+                        && isset($locationAddressIdents['cityident'])
+                        && array_key_exists('streetident', $locationAddressIdents)
+                    ) {
+                        $locationAddress = [
+                            'cityIdent' => (int)$locationAddressIdents['cityident'],
+                            'streetIdent' => $locationAddressIdents['streetident'] !== null
+                                ? (int)$locationAddressIdents['streetident']
+                                : null,
+                            'location_house' => $locationAddressIdents['house'] ?? null,
+                        ];
+                    }
                 }
             }
 

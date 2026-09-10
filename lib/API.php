@@ -19,20 +19,25 @@ class API
         $this->lms = LMS::getInstance();
     }
 
+    /**
+     * Metody sluzace do dispatchu - nie moga byc wywolane z zewnatrz przez ?type=
+     */
+    private const NON_DISPATCHABLE_METHODS = ['getFromApi', 'argsHandler', '__construct'];
+
     public function getFromApi(string $type, array $params = [])
     {
-        $object = API::class;
-
-        if (!method_exists($object, $type)) {
+        if (in_array($type, self::NON_DISPATCHABLE_METHODS, true) || !method_exists($this, $type)) {
             return ['exception' => 'method with name: ' . $type . ' dont exist!', 'code' => 20];
         }
 
-        $argsArray = $this->argsHandler($object, $type, $params);
+        $argsArray = $this->argsHandler(self::class, $type, $params);
         if (key_exists('exception', $argsArray)) {
             return $argsArray;
         }
 
-        return call_user_func_array([$object, $type], $this->argsHandler($object, $type, $params));
+        // [$this, $type] - wywolanie metody instancyjnej. Wczesniej bylo [API::class, $type],
+        // czyli statyczne wywolanie metody niestatycznej - fatal error na PHP 8.0+.
+        return call_user_func_array([$this, $type], $argsArray);
     }
 
     private function argsHandler($object, string $function, array $params): array
