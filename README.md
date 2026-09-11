@@ -115,6 +115,13 @@ Gdy podano oba ustawienia, pierwszeństwo ma `omi.integration_instance_id`.
 ID znajdziesz w OltManager w `Konfiguracja → Integracje` (kolumna „ID").
 > omi.integration_instance_id
 
+(Opcjonalny) Zwracanie adresu e-mail klienta w `getCustomerList`/`getCustomerChecksum`.
+Domyślnie "false" — e-mail (dane osobowe, RODO) nie jest dołączany do odpowiedzi API.
+Po włączeniu na "true", dla każdego klienta dociągany jest jego pierwszy aktywny
+(nie oznaczony jako wyłączony) kontakt typu e-mail i ustawiany w polu `email`
+(`null`, jeśli klient nie ma żadnego takiego kontaktu).
+> omi.olt_manager_return_customer_email
+
 ## Uprawnienia
 
 Do poprawnej pracy OltManager'a należy utworzyć konto w systemie LMS i nadać mu

@@ -236,9 +236,17 @@ class API
             return ['exception' => 'Cant get customers', 'code' => 18];
         }
 
+        $returnEmail = ConfigHelper::getConfig('omi.olt_manager_return_customer_email', false);
+        $returnEmail = in_array($returnEmail, ['true', true, 1, '1'], true);
+
         foreach ($customers as $key => $customer) {
             if (!is_array($customer) || !isset($customer['id'])) {
                 continue;
+            }
+
+            if ($returnEmail) {
+                $email = $this->lms->GetCustomerEmail((int)$customer['id'], 0, CONTACT_DISABLED);
+                $customers[$key]['email'] = is_array($email) && count($email) > 0 ? reset($email) : null;
             }
 
             $locationAddress = [];
