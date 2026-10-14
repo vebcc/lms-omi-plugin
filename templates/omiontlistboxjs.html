@@ -1,198 +1,330 @@
 {literal}
 <script type="text/javascript">
-
     /**
-     * Pobiera listę ONU dla danego klienta, odpytując lokalny proxy LMS.
-     * Token do OltManager API nigdy nie opuszcza serwera.
+     * Panel listy ONU z OltManagera. Dane pobierane przez proxy LMS (?m=omiapiproxy) -
+     * token OltManagera nie opuszcza serwera. Dane z OltManagera trafiają do DOM wyłącznie
+     * jako tekst (.text() / text node) albo przez omiEscapeHtml().
      */
-    function getOnuCollectionByCustomerId(customerID, proxyUrl) {
-        let apiEndpoint = 'api/v1/onu/' + $omiOnuLinkParams + '&ownerLmsId=' + customerID;
-        runRequest(apiEndpoint, proxyUrl);
+
+    function omiEscapeHtml(value) {
+        return String(value === null || value === undefined ? '' : value)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
     }
 
-    function getOnuCollectionByDeviceId(deviceID, proxyUrl) {
-        let apiEndpoint = 'api/v1/onu/' + $omiOnuLinkParams + '&deviceLmsId=' + deviceID;
-        runRequest(apiEndpoint, proxyUrl);
+    function omiInitOnuPanel(config, objectId) {
+        var filters = {
+            customer: 'ownerLmsId',
+            device: 'deviceLmsId',
+            networkdevice: 'networkDeviceLmsId'
+        };
+        var endpoint = 'api/v1/onu/' + (config.onuLinkParams || '?');
+
+        if (config.section !== 'ticket') {
+            if (!filters[config.section] || !objectId || !/^\d+$/.test(objectId)) {
+                console.error('[OMI] Brak poprawnego ID dla sekcji ' + config.section);
+                return;
+            }
+            endpoint += '&' + filters[config.section] + '=' + encodeURIComponent(objectId);
+        }
+
+        omiFetchOnus(config, endpoint);
+        omiBindActions(config);
     }
 
-    function getOnuCollectionByNetworkDeviceId(deviceID, proxyUrl) {
-        let apiEndpoint = 'api/v1/onu/' + $omiOnuLinkParams + '&networkDeviceLmsId=' + deviceID;
-        runRequest(apiEndpoint, proxyUrl);
+    function omiProxyUrl(config, params) {
+        var separator = config.proxyUrl.indexOf('?') === -1 ? '?' : '&';
+        return config.proxyUrl + separator + $.param(params);
     }
 
-    function getOnuCollection(proxyUrl) {
-        let apiEndpoint = 'api/v1/onu/' + $omiOnuLinkParams;
-        runRequest(apiEndpoint, proxyUrl);
-    }
-
-    /**
-     * Odpytuje serwer-side proxy LMS, który przekazuje żądanie do OltManagera.
-     * @param {string} apiEndpoint  - ścieżka API, np. "api/v1/onu/?enabled=1&ownerLmsId=42"
-     * @param {string} proxyUrl     - URL lokalnego endpointu proxy, np. "?m=omiapiproxy"
-     */
-    function runRequest(apiEndpoint, proxyUrl) {
-        let separator = (proxyUrl.indexOf('?') === -1) ? '?' : '&';
-        let requestUrl = proxyUrl + separator + 'endpoint=' + encodeURIComponent(apiEndpoint);
-
+    function omiFetchOnus(config, apiEndpoint) {
         $.ajax({
             method: 'GET',
-            url: requestUrl,
-            data: '',
-            contentType: 'application/json',
+            url: omiProxyUrl(config, {endpoint: apiEndpoint}),
+            dataType: 'json',
             success: function (data) {
-                injectToLMS(data);
+                omiRenderOnus(config, data);
             },
-            error: function (xhr, status, error) {
-                if (xhr.status === 404 || error === 'Not Found') {
-                    $("div#super-omi-table").append("<div class=\"lms-ui-tab-table-row\"><span style='font-size: larger'>Brak dopisanych urządzeń ONU.</span></div>");
+            error: function (xhr, status) {
+                if (xhr.status === 404) {
+                    omiAppendMessage('Brak dopisanych urządzeń ONU.');
                 } else {
-                    console.log('[OMI proxy] status:', status, 'error:', error);
+                    console.log('[OMI proxy] status:', status, 'http:', xhr.status);
                 }
             }
         });
     }
 
-    function injectToLMS(result) {
+    function omiAppendMessage(message) {
+        $('div#super-omi-table').append(
+            '<div class="lms-ui-tab-table-row"><span style="font-size: larger">' + omiEscapeHtml(message) + '</span></div>'
+        );
+    }
 
-        console.log(result);
+    function omiField(object, path) {
+        var value = object;
+        for (var i = 0; i < path.length; i++) {
+            if (value === null || typeof value !== 'object' || !(path[i] in value)) {
+                return null;
+            }
+            value = value[path[i]];
+        }
+        return value;
+    }
 
-        if (!result['data']) {
+    function omiStatus(element, key) {
+        var cause = omiField(element, [key, 'cause']);
+        if (!cause || !cause.level) {
+            return {name: '', level: '', datetime: ''};
+        }
+        return {
+            name: cause.value || '',
+            level: /^\d+$/.test(String(cause.level)) ? String(cause.level) : '',
+            datetime: omiField(element, [key, 'datetime']) || ''
+        };
+    }
+
+    function omiSignal(value) {
+        var number = parseFloat(value);
+        return isNaN(number) ? null : number;
+    }
+
+    function omiColumn(cssClass) {
+        return $('<div></div>').addClass('lms-ui-tab-table-column ' + cssClass);
+    }
+
+    function omiWrapper(cssClass) {
+        return $('<div></div>').addClass('lms-ui-tab-table-wrapper ' + cssClass);
+    }
+
+    function omiTargetUrl(config, onuId) {
+        // Przez moduł LMS (przekierowanie + ewentualne SSO), gdy włączone autologowanie lub nowa karta.
+        if (config.newTab || config.autoLogin) {
+            return omiProxyUrl(config, {endpoint: 'onu/' + onuId, redirect: 1});
+        }
+        return config.oltManagerUrl + '/onu/' + onuId;
+    }
+
+    function omiSignalSpan(cssClass, value, alarmThreshold) {
+        var span = $('<span class="signal-color-general"></span>').addClass(cssClass);
+        if (value === null) {
+            span.text('Brak');
+            if (alarmThreshold) {
+                span.css('color', 'red');
+            }
+            return span;
+        }
+        span.text(value.toFixed(2));
+        if (alarmThreshold) {
+            span.css('color', value < parseFloat(alarmThreshold) ? 'red' : 'green');
+        }
+        return $('<span></span>').append(span).append(document.createTextNode('(dbi)'));
+    }
+
+    function omiRenderOnus(config, result) {
+        if (!result || !result.data) {
             return;
         }
 
-        let $onuCollection = Object.values(result['data']);
+        var onus = Array.isArray(result.data) ? result.data : Object.values(result.data);
+        var table = $('div#super-omi-table');
+        var configuration = result.configuration || {};
 
-        $("span.onu-counter-span").html($onuCollection.length);
+        $('span.onu-counter-span').text(onus.length);
 
-        changesTable = $("div#super-omi-table");
-
-        if ($onuCollection.length === 0) {
-            changesTable.append("<div class=\"lms-ui-tab-table-row\"><span>Brak dopisanych urządzeń ONU!</span></div>");
+        if (onus.length === 0) {
+            omiAppendMessage('Brak dopisanych urządzeń ONU!');
+            return;
         }
 
-        $onuCollection.forEach(element => {
-            let onuId = element['id'];
-            let macAddress = element['mac'] ? element['mac'] : '';
-            let serialNumber = element['serial'] ? "(" + element['serial'] + ")" : '';
-            let type = (element['type'] && element['type']['id']) ? element['type']['name'] : '';
-            let typeReported = (element['typeReported'] && element['typeReported']['id']) ? element['typeReported']['name'] : type;
-            let lastPhysicalStatusName = (element['lastOnuBasicPhysicalStatus'] && element['lastOnuBasicPhysicalStatus']['cause'] && element['lastOnuBasicPhysicalStatus']['cause']['level']) ? element['lastOnuBasicPhysicalStatus']['cause']['value'] : '';
-            let lastPhysicalStatusLevel = (element['lastOnuBasicPhysicalStatus'] && element['lastOnuBasicPhysicalStatus']['cause'] && element['lastOnuBasicPhysicalStatus']['cause']['level']) ? element['lastOnuBasicPhysicalStatus']['cause']['level'] : '';
-            let lastPhysicalStatusTime = (element['lastOnuBasicPhysicalStatus'] && element['lastOnuBasicPhysicalStatus']['cause'] && element['lastOnuBasicPhysicalStatus']['cause']['level']) ? element['lastOnuBasicPhysicalStatus']['datetime'] : '';
-            let lastOnlineStatusName = (element['lastOnuBasicOnlineStatus'] && element['lastOnuBasicOnlineStatus']['cause'] && element['lastOnuBasicOnlineStatus']['cause']['level']) ? element['lastOnuBasicOnlineStatus']['cause']['value'] : '';
-            let lastOnlineStatusLevel = (element['lastOnuBasicOnlineStatus'] && element['lastOnuBasicOnlineStatus']['cause'] && element['lastOnuBasicOnlineStatus']['cause']['level']) ? element['lastOnuBasicOnlineStatus']['cause']['level'] : '';
-            let lastOnuSignalOnu = element['lastOnuSignal'] ? element['lastOnuSignal']['downOnuRx'] : '';
-            let lastOnuSignalOlt = element['lastOnuSignal'] ? element['lastOnuSignal']['upOltRx'] : '';
-
-            let signalExist = (element['lastOnuSignal'] && element['lastOnuSignal']['downOnuRx']) ? true : false;
-
-            if (signalExist) {
-                lastOnuSignalOnu = parseFloat(lastOnuSignalOnu).toFixed(2) + '</span>(dbi)';
-                lastOnuSignalOlt = parseFloat(lastOnuSignalOlt).toFixed(2) + '</span>(dbi)';
-            } else {
-                lastOnuSignalOnu = 'Brak</span>';
-                lastOnuSignalOlt = 'Brak</span>';
+        onus.forEach(function (element) {
+            if (!element || !/^\d+$/.test(String(element.id))) {
+                return;
             }
+            var onuId = String(element.id);
+            var type = omiField(element, ['type', 'id']) ? omiField(element, ['type', 'name']) : '';
+            var typeReported = omiField(element, ['typeReported', 'id']) ? omiField(element, ['typeReported', 'name']) : type;
+            var physical = omiStatus(element, 'lastOnuBasicPhysicalStatus');
+            var online = omiStatus(element, 'lastOnuBasicOnlineStatus');
+            var signalOnu = omiSignal(omiField(element, ['lastOnuSignal', 'downOnuRx']));
+            var signalOlt = omiSignal(omiField(element, ['lastOnuSignal', 'upOltRx']));
 
-            let locationAddress = "";
-            if (element['locationAddress']) {
-                if (element['locationAddress']['city']) {
-                    locationAddress += element['locationAddress']['city'] + ' ';
+            var locationParts = [];
+            ['city', 'street', 'house'].forEach(function (key) {
+                var part = omiField(element, ['locationAddress', key]);
+                if (part) {
+                    locationParts.push(part);
                 }
-                if (element['locationAddress']['street']) {
-                    locationAddress += element['locationAddress']['street'] + ' ';
-                }
-                if (element['locationAddress']['house']) {
-                    locationAddress += element['locationAddress']['house'];
-                }
+            });
+
+            var row = $('<div class="lms-ui-tab-table-row om-ui-button"></div>')
+                .attr('data-target-om-url', omiTargetUrl(config, onuId));
+            if (config.newTab) {
+                row.attr('data-newtab', '1');
             }
 
-            let onuFunctions = '';
+            var main = omiWrapper('col-5');
 
-            if (element['functions'] && Object.keys(element['functions']).length > 0) {
-                onuFunctions = Object.values(element['functions']).map(func => {
-                    // data-action-endpoint przechowuje tylko ścieżkę API (bez tokena).
-                    // Wywołanie akcji idzie przez proxy – token pozostaje na serwerze.
-                    let actionPath = func.url.replace(/^\//, '');
-                    return `<button class="onu-func-btn"
-                data-action-endpoint="${actionPath}"
-                data-name="${func.name}">
-                ${func.name}
-            </button>`;
-                }).join(' ');
-            } else {
-                onuFunctions = 'Brak';
+            var col1 = omiWrapper('col-2');
+            col1.append(omiColumn('name')
+                .append($('<strong></strong>').text(element.address || ''))
+                .append('<br>')
+                .append(document.createTextNode(locationParts.join(' '))));
+            col1.append(omiColumn('description')
+                .append(document.createTextNode(element.mac || ''))
+                .append('<br>')
+                .append(document.createTextNode(element.serial ? '(' + element.serial + ')' : '')));
+            main.append(col1);
+
+            main.append(omiColumn('id').text(typeReported || ''));
+
+            var col3 = omiWrapper('col-2');
+            col3.append(omiColumn('id')
+                .append($('<span class="status-color-general"></span>')
+                    .addClass(physical.level !== '' ? 'status-color-level-' + physical.level : '')
+                    .text(physical.name))
+                .append(document.createTextNode(' (' + omiTimeAgo(new Date(Date.parse(physical.datetime))) + ')'))
+                .append('<br>')
+                .append($('<span class="status-color-general"></span>')
+                    .addClass(online.level !== '' ? 'status-color-level-' + online.level : '')
+                    .text(online.name)));
+            col3.append(omiColumn('id')
+                .append(omiSignalSpan('onu-signal-value', signalOnu, configuration.signal_value_to_alarm))
+                .append('<br>')
+                .append(omiSignalSpan('olt-signal-value', signalOlt, configuration.olt_signal_value_to_alarm)));
+            main.append(col3);
+
+            var functions = omiColumn('id');
+            var functionList = element.functions && typeof element.functions === 'object' ? Object.values(element.functions) : [];
+            var buttons = 0;
+            if (config.canRunActions) {
+                functionList.forEach(function (func) {
+                    if (!func || typeof func.url !== 'string' || !func.name) {
+                        return;
+                    }
+                    functions.append($('<button type="button" class="onu-func-btn"></button>')
+                        .attr('data-action-endpoint', func.url.replace(/^\/+/, ''))
+                        .attr('data-name', String(func.name))
+                        .text(String(func.name)))
+                        .append(document.createTextNode(' '));
+                    buttons++;
+                });
             }
-
-            let statusPhysicalTimeAgo = timeAgo(new Date(Date.parse(lastPhysicalStatusTime)));
-
-            // Normalizacja flagi "open in new tab" z wartości Smarty.
-            let isOpenInNewTab = ($ominewTab === 'true' || $ominewTab === true || $ominewTab == 1);
-
-            // Gdy open_in_new_tab jest włączone: otwieramy proxy redirect w nowej karcie.
-            // Proxy doda nagłówki autologowania (jeśli automatic_login jest włączone).
-            // Gdy open_in_new_tab jest wyłączone: zwykły bezpośredni link do OltManagera.
-            let onuTargetUrl;
-            if (isOpenInNewTab) {
-                onuTargetUrl = $omiProxyUrl
-                    + '&endpoint=' + encodeURIComponent('onu/' + onuId)
-                    + '&redirect=1';
-            } else {
-                onuTargetUrl = $omiOMUrl + '/onu/' + onuId;
+            if (buttons === 0) {
+                functions.text('Brak');
             }
+            main.append(functions);
 
-            // Twórz div jako przycisk - link
-            let onuLink = `<div class="lms-ui-tab-table-row om-ui-button" data-target-om-url="${onuTargetUrl}"`;
-            if (isOpenInNewTab) {
-                onuLink += ` data-newtab="1"`;
-            }
-            onuLink += `>\n`;
-
-            changesTable.append(onuLink +
-                "                <div class=\"lms-ui-tab-table-wrapper col-5\">\n" +
-                "                    <div class=\"lms-ui-tab-table-wrapper col-2\">\n" +
-                "                        <div class=\"lms-ui-tab-table-column name\">\n" +
-                "                            <strong>" + element['address'] + "</strong>\n" +
-                "                            <br> " + locationAddress +
-                "                        </div>\n" +
-                "                        <div class=\"lms-ui-tab-table-column description\">\n" +
-                "                            " + macAddress + "<br>" + serialNumber +
-                "                        </div>\n" +
-                "                    </div>\n" +
-                "                    <div class=\"lms-ui-tab-table-column id\">\n" +
-                "                        " + typeReported +
-                "                    </div>\n" +
-                "                    <div class=\"lms-ui-tab-table-wrapper col-2\">\n" +
-                "                        <div class=\"lms-ui-tab-table-column id\">\n" +
-                "                            <span class=\"status-color-general status-color-level-" + lastPhysicalStatusLevel + "\">" + lastPhysicalStatusName + "</span>" + ' (' + statusPhysicalTimeAgo +
-                "                            )<br>\n" +
-                "                            <span class=\"status-color-general status-color-level-" + lastOnlineStatusLevel + "\">" + lastOnlineStatusName + "</span>" +
-                "                        </div>\n" +
-                "                        <div class=\"lms-ui-tab-table-column id\">\n" +
-                "                            <span class='signal-color-general onu-signal-value'>" + lastOnuSignalOnu +
-                "                            <br>\n" +
-                "                            <span class='signal-color-general olt-signal-value'>" + lastOnuSignalOlt +
-                "                        </div>\n" +
-                "                    </div>\n" +
-                "                    <div class=\"lms-ui-tab-table-column id\">\n" +
-                "                        " + onuFunctions +
-                "                    </div>\n" +
-                "                </div>\n" +
-                "            </div>");
+            row.append(main);
+            table.append(row);
         });
-
-        updateSignals(result['configuration']);
-
     }
 
-    function timeAgo(date) {
-        const seconds = Math.floor((new Date() - date) / 1000);
+    function omiBindActions(config) {
+        $(document).on('click', '.onu-func-btn', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            var actionEndpoint = $(this).attr('data-action-endpoint');
+            var name = $(this).attr('data-name');
 
-        let interval = Math.floor(seconds / 31536000);
+            omiShowConfirm('Czy na pewno chcesz uruchomić funkcję: ' + name + '?', function () {
+                fetch(config.actionUrl, {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                        'X-OMI-CSRF-Token': config.csrfToken
+                    },
+                    body: $.param({endpoint: actionEndpoint})
+                })
+                    .then(function (resp) {
+                        return resp.json().catch(function () {
+                            return {};
+                        });
+                    })
+                    .then(function (data) {
+                        if (data && data.result === 'success') {
+                            omiShowInfo('Sukces', 'Funkcja "' + name + '" wykonana poprawnie');
+                        } else if (data && typeof data.error === 'string') {
+                            omiShowInfo('Błąd', 'Błąd przy wykonywaniu "' + name + '": ' + data.error);
+                        } else {
+                            omiShowInfo('Błąd', 'Błąd przy wykonywaniu "' + name + '"');
+                        }
+                    })
+                    .catch(function () {
+                        omiShowInfo('Błąd sieci', 'Nie udało się połączyć z serwerem LMS');
+                    });
+            });
+        });
+
+        $(document).on('click', '.om-ui-button', function (e) {
+            if ($(e.target).closest('.onu-func-btn').length) {
+                return;
+            }
+            var url = $(this).attr('data-target-om-url');
+            if (!url) {
+                return;
+            }
+            if ($(this).attr('data-newtab')) {
+                window.open(url, '_blank', 'noopener');
+            } else {
+                window.location.href = url;
+            }
+        });
+    }
+
+    function omiShowConfirm(message, onConfirm) {
+        var overlay = document.getElementById('lmsConfirmModal');
+        var btnOk = document.getElementById('lmsConfirmOk');
+        var btnCancel = document.getElementById('lmsConfirmCancel');
+
+        document.getElementById('lmsConfirmMessage').textContent = message;
+        overlay.style.display = 'flex';
+
+        function cleanup() {
+            overlay.style.display = 'none';
+            btnOk.removeEventListener('click', okHandler);
+            btnCancel.removeEventListener('click', cleanup);
+        }
+
+        function okHandler() {
+            cleanup();
+            onConfirm();
+        }
+
+        btnOk.addEventListener('click', okHandler);
+        btnCancel.addEventListener('click', cleanup);
+    }
+
+    function omiShowInfo(title, message) {
+        var overlay = document.getElementById('lmsInfoModal');
+        var btnOk = document.getElementById('lmsInfoOk');
+
+        document.getElementById('lmsInfoHeader').textContent = title;
+        document.getElementById('lmsInfoMessage').textContent = message;
+        overlay.style.display = 'flex';
+
+        function cleanup() {
+            overlay.style.display = 'none';
+            btnOk.removeEventListener('click', cleanup);
+        }
+
+        btnOk.addEventListener('click', cleanup);
+    }
+
+    function omiTimeAgo(date) {
+        if (isNaN(date.getTime())) {
+            return '-';
+        }
+        var seconds = Math.floor((new Date() - date) / 1000);
+
+        var interval = Math.floor(seconds / 31536000);
         if (interval > 1) {
             return interval + ' lat temu';
         }
-
         interval = Math.floor(seconds / 2592000);
         if (interval > 4) {
             return interval + ' miesięcy temu';
@@ -200,68 +332,22 @@
         if (interval > 1) {
             return interval + ' miesiące temu';
         }
-
         interval = Math.floor(seconds / 86400);
         if (interval > 1) {
             return interval + ' dni temu';
         }
-
         interval = Math.floor(seconds / 3600);
         if (interval > 1) {
             return interval + ' godzin temu';
         }
-
         interval = Math.floor(seconds / 60);
         if (interval > 1) {
             return interval + ' minut temu';
         }
-
-        if (seconds < 10) return 'teraz';
-
+        if (seconds < 10) {
+            return 'teraz';
+        }
         return Math.floor(seconds) + ' sekund temu';
     }
-
-    function updateSignals(configuration) {
-
-        let signalValueToAlarm = configuration['signal_value_to_alarm'];
-        let oltSignalValueToAlarm = configuration['olt_signal_value_to_alarm'];
-
-        if (signalValueToAlarm) {
-            $('.onu-signal-value').each(function () {
-                if($(this).text() === 'Brak') {
-                    $(this).css('color', 'red');
-                    return;
-                }
-                var currentValue = parseFloat($(this).text());
-
-                if (currentValue < signalValueToAlarm) {
-                    $(this).css('color', 'red');
-                    $(this).text(currentValue.toFixed(2));
-                } else {
-                    $(this).css('color', 'green');
-                }
-            });
-        }
-
-        if (oltSignalValueToAlarm) {
-            $('.olt-signal-value').each(function () {
-                if($(this).text() === 'Brak') {
-                    $(this).css('color', 'red');
-                    return;
-                }
-                var currentValue = parseFloat($(this).text());
-
-                if (currentValue < oltSignalValueToAlarm) {
-                    $(this).css('color', 'red');
-                    $(this).text(currentValue.toFixed(2));
-                } else {
-                    $(this).css('color', 'green');
-                }
-            });
-        }
-
-
-    }
-
 </script>
 {/literal}

@@ -1,5 +1,4 @@
 <!--// $Id$ //-->
-{$xajax}
 <style>
     .status-color-general {
         font-weight: bold;
@@ -93,7 +92,7 @@
         <div class="lms-ui-tab-header-cell">
             <img SRC="img/LMSOmiPlugin/olt_manager.ico" alt="" class="lms-ui-sortable-handle"
                  style="max-height: 20px; max-width: auto;">
-            <strong>{trans($omioltmanagersectiontitle)} (<span class="onu-counter-span">0</span>):</strong>
+            <strong>{trans($omioltmanagersectiontitle)|escape} (<span class="onu-counter-span">0</span>):</strong>
 
 
         </div>
@@ -171,24 +170,17 @@
 </div>
 
 <script type="text/javascript">
-    <!--
-    let searchParams = new URLSearchParams(window.location.search);
-
-    let $omiUrlId = null;
-
-    if (searchParams.has('id')) {
-        $omiUrlId = searchParams.get('id');
-    }
-
-    let $omiProxyUrl = '{$omiproxyurl}';
-    let $omiOMUrl = '{$omioltmanagerurl}';
-    let $ominewTab = '{$omioltmanagernewtab}';
-    let $omiSection = '{$omioltmanagersection}';
-    let $omiSectionTitle = '{$omioltmanagersectiontitle}';
-    let $omiOnuLinkParams = '{$omioltmanageronulinkparams}';
-    let $omiAutoLoginEnabled = '{$omioltmanagerautoligin}';
-    //-->
-
+    var omiConfig = {
+        proxyUrl: '{$omiproxyurl|escape:'javascript'}',
+        actionUrl: '{$omiactionurl|escape:'javascript'}',
+        csrfToken: '{$omicsrftoken|escape:'javascript'}',
+        canRunActions: {if $omicanrunactions}true{else}false{/if},
+        oltManagerUrl: '{$omioltmanagerurl|escape:'javascript'}',
+        newTab: {if $omioltmanagernewtab}true{else}false{/if},
+        autoLogin: {if $omioltmanagerautologin}true{else}false{/if},
+        section: '{$omioltmanagersection|escape:'javascript'}',
+        onuLinkParams: '{$omioltmanageronulinkparams|escape:'javascript'}'
+    };
 </script>
 
 {include file="omiontlistboxjs.html"}
@@ -196,134 +188,7 @@
 <script type="text/javascript">
     (function ($) {
         $(document).ready(function () {
-            if ($omiProxyUrl) {
-                switch ($omiSection) {
-                    case 'customer':
-                        if(!$omiUrlId) {
-                            console.error('Brak ID dla sekcji customer');
-                            return;
-                        }
-                        getOnuCollectionByCustomerId($omiUrlId, $omiProxyUrl);
-                        break;
-                    case 'device':
-                        if (!$omiUrlId) {
-                            console.error('Brak ID dla sekcji device');
-                            return;
-                        }
-                        getOnuCollectionByDeviceId($omiUrlId, $omiProxyUrl);
-                        break;
-                    case 'networkdevice':
-                        if (!$omiUrlId) {
-                            console.error('Brak ID dla sekcji networkdevice');
-                            return;
-                        }
-                        getOnuCollectionByNetworkDeviceId($omiUrlId, $omiProxyUrl);
-                        break;
-                    case 'ticket':
-                        getOnuCollection($omiProxyUrl);
-                        break;
-                    default:
-                        console.log('Unknown section: ' + $omiSection);
-                }
-
-                function showConfirm(message, onConfirm) {
-                    const overlay = document.getElementById("lmsConfirmModal");
-                    const msgBox = document.getElementById("lmsConfirmMessage");
-                    const btnOk = document.getElementById("lmsConfirmOk");
-                    const btnCancel = document.getElementById("lmsConfirmCancel");
-
-                    msgBox.textContent = message;
-                    overlay.style.display = "flex";
-
-                    function cleanup() {
-                        overlay.style.display = "none";
-                        btnOk.removeEventListener("click", okHandler);
-                        btnCancel.removeEventListener("click", cancelHandler);
-                    }
-
-                    function okHandler() {
-                        cleanup();
-                        onConfirm();
-                    }
-
-                    function cancelHandler() {
-                        cleanup();
-                    }
-
-                    btnOk.addEventListener("click", okHandler);
-                    btnCancel.addEventListener("click", cancelHandler);
-                }
-
-                function showInfo(title, message) {
-                    const overlay = document.getElementById("lmsInfoModal");
-                    const msgBox = document.getElementById("lmsInfoMessage");
-                    const header = document.getElementById("lmsInfoHeader");
-                    const btnOk = document.getElementById("lmsInfoOk");
-
-                    header.textContent = title;
-                    msgBox.textContent = message;
-                    overlay.style.display = "flex";
-
-                    function cleanup() {
-                        overlay.style.display = "none";
-                        btnOk.removeEventListener("click", okHandler);
-                    }
-
-                    function okHandler() {
-                        cleanup();
-                    }
-
-                    btnOk.addEventListener("click", okHandler);
-                }
-
-                // delegacja zdarzeń żeby działało dla nowych elementów
-                $(document).on('click', '.onu-func-btn', function (e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    let actionEndpoint = $(this).data('action-endpoint');
-                    let name = $(this).data('name');
-
-                    showConfirm(`Czy na pewno chcesz uruchomić funkcję: ` + name + `?`, () => {
-                        // Wywołanie przez proxy – token pozostaje na serwerze
-                        let proxyActionUrl = $omiProxyUrl
-                            + '&endpoint=' + encodeURIComponent(actionEndpoint)
-                            + '&method=GET';
-
-                        fetch(proxyActionUrl, {
-                            method: 'GET',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            }
-                        })
-                            .then(resp => resp.json())
-                            .then(data => {
-                                if (data.result === "success") {
-                                    showInfo("Sukces", `Funkcja "` + name + `" wykonana poprawnie ✅`);
-                                } else {
-                                    showInfo("Błąd", `Błąd przy wykonywaniu "` + name + `" ❌`);
-                                }
-                            })
-                            .catch(err => {
-                                showInfo("Błąd sieci", String(err));
-                            });
-                    });
-                });
-
-                $(document).on('click', '.om-ui-button', function (e) {
-                    if ($(e.target).closest('.onu-func-btn').length) {
-                        return;
-                    }
-                    const url = $(this).data('target-om-url');
-                    if (!url) return;
-                    const newTab = $(this).data('newtab');
-                    if (newTab) {
-                        window.open(url, '_blank');
-                    } else {
-                        window.location.href = url;
-                    }
-                });
-
-            }
+            omiInitOnuPanel(omiConfig, new URLSearchParams(window.location.search).get('id'));
         });
     })(jQuery);
 </script>

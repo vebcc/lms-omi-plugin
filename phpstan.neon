@@ -1,0 +1,13 @@
+parameters:
+    level: 8
+    phpVersion: 70400
+    paths:
+        - lib/src
+        - lib/autoload.php
+        - handlers
+        - LMSOmiPlugin.php
+        - bin
+        - tests
+    scanFiles:
+        - stubs/lms.stub
+    treatPhpDocTypesAsCertain: false

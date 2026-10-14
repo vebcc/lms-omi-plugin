@@ -1,207 +1,169 @@
-# LMS OltManager integration plugin
+# LMS OltManager integration plugin (LMSOmiPlugin)
 
-Wtyczka do systemu LMS realizująca integrację do systemu OltManager.
+Wtyczka do systemu LMS realizująca integrację z systemem OltManager.
 
-Ze względu na różne podejście ISP do zapisywania adresów w lmsie,
-konieczne było stworzenie wtyczki, która pozwoli wyciągać niezbędne dane z systemu.
-"API" lms'a dodatkowo nie pozwala na pobranie wszystkich danych. Na przykład w przypadku
-NetDev nie ma możliwości pobrania adresu jako TERYT.
+- udostępnia OltManagerowi dane z LMS (klienci, komputery, urządzenia sieciowe, węzły, taryfy,
+  konfiguracja dostępu, grupy komputerów, ONU z pluginu GPON ZTE, dane PPPoE) przez
+  **API v3** (`?m=omiapi`),
+- dodaje do kart klienta, komputera, urządzenia sieciowego i zgłoszenia panel z listą ONU
+  (adres, MAC, serial, model, status, sygnał) pobieraną z OltManagera przez serwer LMS,
+- pozwala przejść jednym kliknięciem do OltManagera, z automatycznym logowaniem (SSO).
 
-Wtyczka dodatkowo zapewnia możliwość szybkiego przejścia do systemu OltManager
-bezpośrednio z Node i NetDev przez dodanie przycisku, który kieruje bezpośrednio
-na zsynchronizowane Onu.
+Dane są synchronizowane po stronie OltManagera co określony czas, więc po pierwszym
+uruchomieniu należy poczekać na pierwszą synchronizację - do tego czasu lista ONU będzie pusta.
 
-W sekcji Customer został dodany dodatkowy panel, który wyświetla podstawowe informacje
-o wszystkich urządzeniach klienta, które są zsynchronizowane z systemem OltManager.
-Podejrzeć możemy informacje takie jak: adres, mac, serial, status, sygnał, model, czy czas pracy.
+## Wymagania
 
-Należy pamiętać o poprawnej konfiguracji po stronie systemu OltManager. Bez synchronizacji
-po stronie OM, żadne przyciski w Node, i NetDev nie będą wyświetlane. Synchronizacja
-wykonuje się po stronie OM co określony czas, wiec po uruchomieniu należy odczekać do
-wykonania 1 synchronizacji.
+- LMS (lmsgit lub LMS+) na **MySQL/MariaDB albo PostgreSQL**,
+- PHP **7.4 - 8.5** z rozszerzeniem `curl`,
+- OltManager z włączoną integracją LMS (LMSv2) **w wersji obsługującej API v3 i SSO**.
+
+> **Uwaga:** plugin 3.x działa wyłącznie z OltManagerem obsługującym API v3 / SSO - nie zawiera
+> już starych modułów `omidatagetter` / `omiapidatagetter`. Jeśli Twój OltManager nie obsługuje
+> jeszcze API v3, zostań przy pluginie **2.x** do czasu aktualizacji OltManagera.
 
 ## Instalacja
 
-Należy pamiętać, że wtyczka była pisana na wersji PHP 7.3 dlatego, jeżeli instancja
-LMS'a jest na niższej wersji, instalacja wtyczki nie będzie możliwa.
+1. Pobieramy najnowszą wersję wtyczki: https://github.com/vebcc/lms-omi-plugin/releases
+2. Rozpakowany katalog `LMSOmiPlugin` kopiujemy do katalogu `plugins` LMS-a (np.
+   `/var/www/html/lms/plugins/LMSOmiPlugin`). Jeśli zgodnie z `lms.ini` katalog pluginów znajduje się
+   gdzie indziej (np. `/usr/share/lms/plugins`), kopiujemy wtyczkę tam.
+3. Tworzymy dowiązanie do ikon:
+   `ln -s /var/www/html/lms/plugins/LMSOmiPlugin/img /var/www/html/lms/img/LMSOmiPlugin`
+4. W katalogu głównym LMS-a przebudowujemy autoloader:
 
-- Pobieramy najnowszą wersję wtyczki:
-  https://github.com/vebcc/lms-omi-plugin/releases
-- Rozpakowany folder LMSOmiPlugin kopiujemy do folderu "plugins" który znajduje się
-  w głównym katalogu LMS. W przypadku, gdy zgodnie z konfiguracją `lms.ini`, folder plugins znajduje
-- się np. w `/usr/share/lms/plugins` należy skopiować wtyczkę do tego folderu. W specyficznych
-  przypadkach należy wrzucić wtyczkę do obydwóch lokalizacji.
-- Tworzymy dowiązanie symboliczne w katalogu img LMS-a o nazwie LMSOmiPlugin do katalogu ../plugins/LMSOmiPlugin/img.
-  np. `ln -s /var/www/html/plugins/LMSOmiPlugin/img /var/www/html/img/LMSOmiPlugin`
-- Przechodzimy do głównego katalogu, w którym jest zainstalowany LMS np. `/var/www/html/lms`
-  i wykonujemy polecenie:
+   ```
+   composer dump-autoload -o
+   ```
 
-> ./composer update --no-dev -n
+   (albo `./composer update --no-dev -n`, jak przy innych pluginach). Plugin ma też własny
+   autoloader, więc nowe klasy działają nawet przy nieaktualnej classmapie.
+5. W LMS: `Konfiguracja > Wtyczki` - włączamy wtyczkę.
+6. Przy pierwszym uruchomieniu plugin sam dopisuje brakujące ustawienia sekcji `omi`
+   (`Konfiguracja > Interfejs użytkownika`, sekcja `omi`) z wartościami domyślnymi - istniejących
+   ustawień nigdy nie zmienia. Uzupełniamy co najmniej `omi.olt_manager_url` i `omi.olt_manager_token`.
+7. Tworzymy w LMS konto techniczne dla OltManagera z uprawnieniem `omi_api_user` i wpisujemy jego
+   login/hasło w konfiguracji integracji w OltManagerze.
 
-- Następnie przechodzimy do LMS'a do zakładki `Konfiguracja>Wtyczki` i włączamy wtyczkę.
-- W zakładce `Konfiguracja>Nowe ustawienie` dodajemy ustawienia zgodnie z rozdziałem "Ustawienia" poniżej.
-- Jeśli wszystko przebiegło pomyślnie, w menu pojawi się zakładka OltManager.
+Jeśli wszystko przebiegło pomyślnie, w menu pojawi się zakładka **OltManager**.
+
+### Aktualizacja z wersji 2.x
+
+- Najpierw zaktualizuj OltManager do wersji z API v3 / SSO - plugin 3.x nie obsługuje starszych
+  OltManagerów (stare moduły `omidatagetter` / `omiapidatagetter` zostały usunięte).
+- Podmień katalog pluginu (i przebuduj autoloader LMS-a).
+- Ustawienia zostaną dopisane automatycznie (tylko brakujące).
+- Zmiany zachowania:
+  - lista **Urządzenia z błędami** jest domyślnie **wyłączona** (`omi.device_error_list_enabled`),
+  - wartości logiczne są czytane jak w LMS (`true/false`, `tak/nie`, `1/0`...) - dawniej np.
+    `omi.olt_manager_force_sync = false` było traktowane jako włączone,
+  - proxy `?m=omiapiproxy` przyjmuje tylko zapytania GET i ścieżki względne; akcje na ONU (np. restart)
+    idą przez nowy moduł `?m=omiapiaction` (POST + token CSRF) i wymagają uprawnienia `omi_full_access`,
+  - uprawnienia zostały poprawione (patrz niżej) - warto sprawdzić przypisania użytkowników,
+  - automatyczne logowanie działa wyłącznie przez SSO - tokeny nie trafiają już do adresu URL,
+  - uprawnienie `omi_api_user` obejmuje tylko moduł `omiapi`,
+  - zapytanie o konfigurację dostępu (taryfy komputerów) działa również na PostgreSQL.
+- Po przejściu OltManagera na API v3 wykona on jednorazowo pełną synchronizację (inne sumy
+  kontrolne kolekcji) - to normalne.
 
 ## Moduły
 
-- Urządzenia z błędami - wyświetla listę z listą urządzeń, które mają
-  niepoprawnie skonfigurowane adresy Onu, przez co nie zostaną zsynchronizowane
-  z systemem OltManager. (Moduł użyteczny wyłącznie, jeśli przechowywujemy adresy Onu w opisach komputerów, urządzeń
-  sieciowych.)
+| moduł | opis | uprawnienie |
+|---|---|---|
+| `omiapi` | API v3 dla OltManagera ([docs/API_V3.md](docs/API_V3.md)) | `omi_api_user` |
+| `omiredirect` | przejście do OltManagera (z SSO) - menu *OltManager* | `omi_read_only` |
+| `omiapiproxy` | odczyt z API OltManagera dla paneli ONU (tylko GET) | `omi_read_only` |
+| `omiapiaction` | akcje na ONU (POST + CSRF) | `omi_full_access` |
+| `omideviceerrorlist` | lista urządzeń z błędnym adresem ONU w opisie (domyślnie wyłączona) | `omi_device_error_list` |
 
-## Ustawienia
+**Urządzenia z błędami** - lista komputerów i urządzeń sieciowych, które mają niepoprawnie zapisany
+adres ONU w opisie (np. `TU_1/2/3:4`) i przez to nie zostaną zsynchronizowane z OltManagerem. Moduł
+jest przydatny wyłącznie, jeśli adresy ONU są przechowywane w opisach - dla większości instalacji
+jest zbędny, dlatego domyślnie jest wyłączony (brak pozycji w menu, moduł zachowuje się jak
+nieistniejący). Włączamy go ustawieniem `omi.device_error_list_enabled = true`.
 
-Do poprawnej pracy wtyczki niezbędne jest dodanie ustawień do systemu
+## Ustawienia (sekcja `omi`)
 
-Pełny adres do aplikacji OltManager
-> omi.olt_manager_url
-
-(opcjonalne) bezpośredni IP serwera OltManagera np. 192.168.5.55 przydatne gdy DNS rozwiązuje się do lokalnego IP
-niedostępnego z serwera LMS (np. inny VLAN/podsieć)
-> omi.olt_manager_ip
-
-Czy weryfikować SSL po stronie OltManager'a true/false, domyślnie true
-> omi.ssl_verify
-
-Token do autoryzacji z systemu OltManager
-W systemie OltManager musi być dodane konto, które ze względów bezpieczeństwa
-powinno mieć uprawnienia wyłącznie do integracji LMS. Dodatkowo należy wygenerować
-token i wprowadzić go do LMS'a.
-> omi.olt_manager_token
-
-(Opcjonalny) Typ dostawcy adresów onu.
-Domyślnie i obecnie jedyny wspierany: "description"
-> omi.provider_type
-
-(Opcjonalny) Automatyczne logowanie do systemu OltManager.
-Domyślnie "false", zmiana na true powoduje automatyczne dodawanie tokenów autoryzacyjnych do adresu url
-przycisków. Należy pamiętać że przed włączeniem w LMS, należy włączyć logowanie przez "Integration User",
-w systemie OltManager.
-> omi.olt_manager_automatic_login
-
-(Opcjonalny) Filtrowanie taryf klienta po dniu naliczania.
-Jeśli ustawione i nie jest `null` to `getNodeAccessConfigurationCollection` pobierze wyłącznie taryfy klienta, które
-mają ustawione naliczanie na podany dzień. np "1" - naliczanie co miesiąc 1 dnia. Cala reszta zostanie pominięta.
-> omi.node_access_configuration_at
-
-(Opcjonalny) Filtrowanie taryf klienta po grupie komputera.
-Jeśli ustawione i nie jest `null` to `getNodeAccessConfigurationCollection` pobierze wyłącznie komputery, które nie są
-przypisane żadnej ze wskazanych grup.
-Podajemy ID grupy komputera, które chcemy zignorować. Można podać wiele ID grup oddzielając je przecinkiem np. "1,2,3".
-> omi.node_access_configuration_ignore_groups
-
-Linki do OltManager w Node, NetDev i Customer otwierają się w nowej karcie
-Domyślnie "false", zmiana na true powoduje otwieranie linków do OltManager w nowej karcie
-> omi.olt_manager_open_in_new_tab
-
-Dodatkowe parametry, jakie mają być dodawane podczas filtrowania listy Onu.
-Domyślnie `?enabled=1`.
-> omi.olt_manager_onu_link_params
-
-(Opcjonalny) Slug instancji integracji OltManagera przypisanej do tego LMS-a.
-Od czasu przejścia OltManagera na model wielu instancji integracji ten sam `lms_id`
-może istnieć w kilku instancjach LMS podłączonych do jednego OltManagera. Jeśli
-ustawione, wtyczka dokleja `integrationSlug=<slug>` do zapytań o listę ONU
-(przez `?m=omiapiproxy`), dzięki czemu OltManager zawęża wynik do właściwej instancji.
-Slug znajdziesz w OltManager w `Konfiguracja → Integracje` (kolumna „Slug"); domyślna,
-zmigrowana z płaskich ustawień instancja ma slug `lmsv2`.
-Bez tego ustawienia (i bez `omi.integration_instance_id`) wtyczka zachowuje się jak
-wcześniej — nie wysyła parametru (bezpieczne przy jednej instancji).
-> omi.integration_slug
-
-(Opcjonalny) Numeryczne ID instancji integracji OltManagera - alternatywa dla
-`omi.integration_slug`. Jeśli ustawione, wtyczka dokleja `integrationInstanceId=<id>`.
-Gdy podano oba ustawienia, pierwszeństwo ma `omi.integration_instance_id`.
-ID znajdziesz w OltManager w `Konfiguracja → Integracje` (kolumna „ID").
-> omi.integration_instance_id
-
-(Opcjonalny) Zwracanie adresu e-mail klienta w `getCustomerList`/`getCustomerChecksum`.
-Domyślnie "false" — e-mail (dane osobowe, RODO) nie jest dołączany do odpowiedzi API.
-Po włączeniu na "true", dla każdego klienta dociągany jest jego pierwszy aktywny
-(nie oznaczony jako wyłączony) kontakt typu e-mail i ustawiany w polu `email`
-(`null`, jeśli klient nie ma żadnego takiego kontaktu).
-> omi.olt_manager_return_customer_email
+| ustawienie | domyślnie | opis |
+|---|---|---|
+| `olt_manager_url` | *(puste)* | Pełny adres OltManagera, np. `https://oltmanager.example.com` (bez końcowego `/`). |
+| `olt_manager_token` | *(puste)* | Token API użytkownika integracyjnego OltManagera (rola `ROLE_INTEGRATION_USER`). Konto w OltManagerze powinno mieć wyłącznie uprawnienia integracji. Token nigdy nie trafia do przeglądarki. |
+| `olt_manager_ip` | *(puste)* | Opcjonalny bezpośredni adres IP OltManagera (np. `192.168.5.55`), gdy DNS wskazuje adres niedostępny z serwera LMS. Połączenie idzie po IP z zachowaniem nazwy hosta (SNI, certyfikat). |
+| `ssl_verify` | `true` | Weryfikacja certyfikatu TLS OltManagera. |
+| `olt_manager_automatic_login` | `false` | Automatyczne logowanie do OltManagera (SSO) przy przejściu z LMS. W OltManagerze musi być włączone ustawienie `allow_automatic_login_via_integration_user`. |
+| `olt_manager_open_in_new_tab` | `false` | Otwieranie OltManagera w nowej karcie. |
+| `olt_manager_force_sync` | `false` | Po zapisaniu klienta / komputera / zobowiązania LMS prosi OltManager o natychmiastową synchronizację. |
+| `olt_manager_onu_link_params` | `?enabled=1` | Dodatkowe parametry filtrowania listy ONU w panelach. |
+| `olt_manager_return_customer_email` | `false` | Zwracanie e-maila klienta (pierwszy aktywny kontakt e-mail) w polu `email` kolekcji klientów. Dane osobowe (RODO) - domyślnie wyłączone. |
+| `integration_slug` | *(puste)* | Slug instancji integracji OltManagera przypisanej do tego LMS-a (`Konfiguracja → Integracje`, kolumna „Slug", domyślnie `lmsv2`). Potrzebne, gdy do jednego OltManagera podłączonych jest kilka LMS-ów - zapytania o listę ONU są wtedy zawężane do właściwej instancji. |
+| `integration_instance_id` | *(puste)* | Numeryczne ID instancji integracji - alternatywa dla `integration_slug`, ma pierwszeństwo. |
+| `node_access_configuration_at` | *(puste)* | Uwzględniaj w konfiguracji dostępu tylko zobowiązania naliczane w podanym dniu (np. `1`). Puste / `null` = wszystkie. |
+| `node_access_configuration_ignore_groups` | *(puste)* | ID grup komputerów pomijanych w konfiguracji dostępu, oddzielone przecinkami (np. `1,2,3`). |
+| `provider_type` | `description` | Źródło adresów ONU dla listy urządzeń z błędami (obecnie tylko `description`). |
+| `device_error_list_enabled` | `false` | Włącza moduł *Urządzenia z błędami*. |
+| `deviceerrorlist_pagelimit` | `100` | Liczba pozycji na stronie listy urządzeń z błędami. |
 
 ## Uprawnienia
 
-Do poprawnej pracy OltManager'a należy utworzyć konto w systemie LMS i nadać mu
-uprawnienie `omi_api_user`.
-Użytkownik z wyłącznie tym uprawnieniem nie ma dostępu do systemu więc nie ma możliwości podglądu danych wrażliwych typu
-PESEL.
+- `omi_api_user` - konto techniczne OltManagera: wyłącznie moduł `omiapi`.
+  Użytkownik z wyłącznie tym uprawnieniem nie ma dostępu do interfejsu LMS (np. danych typu PESEL).
+- `omi_read_only` - użytkownicy: przejście do OltManagera (`omiredirect`) i podgląd list ONU
+  (`omiapiproxy`), bez wykonywania akcji na ONU.
+- `omi_full_access` - wszystkie moduły pluginu, w tym akcje na ONU (`omiapiaction`).
+- `omi_device_error_list` - lista urządzeń z błędami (widoczne tylko przy
+  `omi.device_error_list_enabled = true`).
 
-Uprawnienia dla użytkowników:
+## API v3
 
-- `omi_read_only` - uprawnienie to daje dostęp do listy urządzeń Onu z aplikacji.
+Pełny opis: [docs/API_V3.md](docs/API_V3.md). W skrócie:
 
-Pełne uprawnienia do modułu OltManager'a:
-
-- `omi_full_access` - pełne uprawnienia do pluginu.
-
-Inne uprawnienia:
-
-- `omi_device_error_list` - Nadaje uprawnienia do przeglądu listy urządzeń z błędami. Moduł ten jest użyteczny wyłącznie
-  dla klientów używających integratora z OltManagerem w postaci adresów onu w opisie komputera. Dla 99% instalacji nieużywany.
-
-### OMI API
-
-Obecnie obsługiwane funkcje:
-
-- `getNetworkDeviceConnections` - pobiera listę NetworkDeviceConnections która jest
-  odpowiednikiem encji w OltManager. NetworkDeviceConnection zawiera komputery(device)
-  i urządzenia sieciowe(networkDevice) razem z adresem i właścicielem. Wyświetla wyłącznie
-  listę z urządzeniami które zostały rozpoznane jako ONU.
-- getNetworkDeviceConnectionsWithError - pobiera listę obiektów z błędami. Lista zawiera informacje o błędach
-  w obiektach które nie pozwalają na poprawne wygenerowanie NetworkDeviceConnections do integracji z OM. Wykorzystywane
-  w module 'omideviceerrorlist'.
-- `getMyToken` - pobiera token zalogowanego użytkownika wykorzystywany do autoryzacji OM.
-- `getUserTokens` - pobiera tokeny wszystkich włączonych użytkowników systemu.
-- `getMyLogin` - pobiera login zalogowanego użytkownika.
-- `getPPPoECredentials` - pobiera dane do autoryzacji PPPoE. (Login, hasło)
-  Dodatkowe parametry:
-    - `mac` - Adres mac urządzenia dla którego pobieramy dane.
-        - `upMacs` - Ilość adresów mac powyżej wskazanego które sprawdzać
-        - `downMacs` - Ilość adresów mac poniżej wskazanego które sprawdzać
-
-> /?m=omidatagetter&type={functionName}{otherParams}
+- `POST <lms>/?m=omiapi&action=<akcja>` z `loginform[login]` i `loginform[pwd]` (logowanie sesyjne LMS),
+- odpowiedź zawsze JSON: `{"apiVersion": 3, "data": ...}` albo
+  `{"apiVersion": 3, "error": {"code": "...", "message": "..."}}` z kodem HTTP 4xx/5xx,
+- akcje: `info`, `customers`, `nodes`, `netdevices`, `netnodes`, `tariffs`,
+  `nodeAccessConfigurations`, `nodeGroups`, `gponZteOnus`, `pppoeCredentials`,
+- kolekcje zwracają `{"checksum": "...", "notModified": false, "items": [...]}`; z parametrem
+  `ifChecksum=<md5>` równym bieżącej sumie - `{"checksum": "...", "notModified": true}` bez `items`
+  (pobranie warunkowe: kolekcja jest budowana raz, a niezmienione dane nie są przesyłane).
 
 Przykłady:
-> /?m=omidatagetter&type=getNetworkDeviceConnections
 
-> /?m=omidatagetter&type=getPPPoECredentials&mac=78:31:FF:27:FF:9A&upMacs=2&downMacs=2
+```
+/?m=omiapi&action=info
+/?m=omiapi&action=customers&ifChecksum=0cc175b9c0f1b6a831c399e269772661
+/?m=omiapi&action=pppoeCredentials&mac=78:31:FF:27:FF:9A&upMacs=2&downMacs=2
+```
 
-Podany przykład pobierze dane do autoryzacji PPPoE dla urządzenia o adresie mac 78:31:FF:27:FF:9A.
-Jeżeli nie znajdzie, sprawdzi również 2 adresy wyżej oraz 2 adresy niżej aż do natrafienia na sesję PPPoE.
-Czyli sprawdzane adresy to:
+Ostatni przykład szuka danych PPPoE dla MAC `78:31:FF:27:FF:9A`, a jeśli nie znajdzie - kolejno dla
+`…:9B`, `…:9C`, `…:99`, `…:98`.
 
-- `78:31:FF:27:FF:9A`
-- `78:31:FF:27:FF:9B`
-- `78:31:FF:27:FF:9C`
-- `78:31:FF:27:FF:99`
-- `78:31:FF:27:FF:98`
+## Automatyczne logowanie (SSO)
 
-### LMS API
+Przy `omi.olt_manager_automatic_login = true` kliknięcie w link do OltManagera (menu, panel ONU)
+przechodzi przez LMS (`?m=omiredirect` lub proxy w trybie przekierowania):
 
-> /?m=omiapidatagetter&type={functionName}{otherParams}
+1. serwer LMS prosi OltManager (server-to-server, z tokenem API) o jednorazowy ticket dla loginu
+   bieżącego użytkownika LMS i docelowej strony,
+2. przeglądarka jest przekierowana na adres logowania z ticketem - ticket jest ważny 60 sekund
+   i jednorazowy, a token API nigdy nie trafia do przeglądarki,
+3. użytkownik OltManagera jest dopasowywany po loginie LMS (pole *additional username*, a w drugiej
+   kolejności login OltManagera).
 
-Obecnie obsługiwane funkcje:
+Jeśli OltManager nie obsługuje SSO (stara wersja), użytkownik jest przekierowany bez logowania, a w
+logu błędów PHP pojawia się wpis z sugestią aktualizacji OltManagera. Każdy inny błąd również kończy
+się zwykłym przekierowaniem bez logowania i wpisem w logu (bez tokenów).
 
-- `getNodeCollection` - pobiera listę komputerów w systemie LMS.
-- `getNodeChecksum` - pobiera sumę kontrolną komputerów w systemie LMS.
-- `getNetDevCollection` - pobiera listę urządzeń sieciowych w systemie LMS.
-- `getNetDevChecksum` - pobiera sumę kontrolną urządzeń sieciowych w systemie LMS.
-- `getNetNodeCollection` - pobiera listę urządzeń głównych w systemie LMS.
-- `getNetNodeChecksum` - pobiera sumę kontrolną urządzeń głównych w systemie LMS.
-- `getCustomerList` - pobiera listę klientów w systemie LMS.
-- `getCustomerChecksum` - pobiera sumę kontrolną klientów w systemie LMS.
-- `getTariffsList` - pobiera listę taryf w systemie LMS.
-- `getTariffsChecksum` - pobiera sumę kontrolną taryf w systemie LMS.
-- `getNodeAccessConfigurationCollection` - pobiera listę taryf komputerów w systemie LMS.
-- `getNodeAccessConfigurationCollectionChecksum` - pobiera sumę kontrolną taryf komputerów w systemie LMS.
-- `getNodeGroupCollection` - pobiera listę grup komputerów w systemie LMS.
-- `getNodeGroupCollectionChecksum` - pobiera sumę kontrolną grup komputerów w systemie LMS.
-- `getGponZtePluginOnus` - pobiera listę urządzeń ONU z pluginu GponZtePlugin.
-- `getGponZtePluginOnusChecksum` - pobiera sumę kontrolną listy urządzeń ONU z pluginu GponZtePlugin.
-  Przykłady:
+## Rozwój
 
-> /?m=omiapidatagetter&type=GetNetDevList
-> /?m=omiapidatagetter&lmsDirect=1&type=GetNetDevList&argorder=name,desc
+```
+composer update          # narzędzia deweloperskie (phpunit, phpstan, php-cs-fixer)
+composer test            # testy jednostkowe
+composer phpstan         # analiza statyczna
+composer cs              # PSR-12
+php bin/generate-install-sql.php   # po zmianie listy ustawień (OmiConfig::DEFINITIONS)
+```
+
+Kod pluginu musi się parsować na PHP 7.4 - 8.5 (plugin jest ładowany przy każdym żądaniu LMS).
+Zapytania SQL muszą działać na MySQL i PostgreSQL. Nowe ustawienia dodajemy w
+`lib/src/Config/OmiConfig.php`, a zmiany schematu przez `PLUGIN_DB_VERSION` i pliki
+`lib/upgradedb/{mysql,postgres}.<RRRRMMDDGG>.php` (nowe instalacje: `doc/lms.{mysql,pgsql}`).

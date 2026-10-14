@@ -1,0 +1,161 @@
+<?php
+
+// Minimalne sygnatury klas i funkcji LMS używanych przez plugin - wyłącznie dla PHPStan.
+// Rozszerzenie .stub (nie .php), żeby classmap composera LMS-a nigdy ich nie załadował.
+
+abstract class LMSPlugin
+{
+    /** @var array<string, array{class: string, method: string}> */
+    protected $handlers;
+
+    /** @return void */
+    abstract public function registerHandlers();
+}
+
+class LMSDB
+{
+    public const RESOURCE_TYPE_TABLE = 1;
+
+    /** @return LMSDB_common */
+    public static function getInstance($force_new = false) {}
+}
+
+class LMSDB_common
+{
+    /**
+     * @param array<mixed>|null $inputarray
+     * @return array<int, array<string, mixed>>|null
+     */
+    public function GetAll($query = null, ?array $inputarray = null) {}
+
+    /**
+     * @param array<mixed>|null $inputarray
+     * @return array<string, mixed>|null
+     */
+    public function GetRow($query = null, ?array $inputarray = null) {}
+
+    /**
+     * @param array<mixed>|null $inputarray
+     * @return mixed
+     */
+    public function GetOne($query = null, ?array $inputarray = null) {}
+
+    /**
+     * @param array<mixed>|null $inputarray
+     * @return int|false
+     */
+    public function Execute($query, ?array $inputarray = null) {}
+
+    /** @return bool */
+    public function ResourceExists($name, $type) {}
+
+    /** @return void */
+    public function BeginTrans() {}
+
+    /** @return void */
+    public function CommitTrans() {}
+}
+
+class LMS
+{
+    /** @return LMS */
+    public static function getInstance() {}
+
+    /** @return array<int, string>|false */
+    public function GetUserRights($id) {}
+
+    /** @return array<mixed>|false */
+    public function GetNodeList(array $params = []) {}
+
+    /** @return array<mixed>|false */
+    public function getCustomerList($params = []) {}
+
+    /** @return array<mixed>|false */
+    public function GetTariffs($forced_id = null) {}
+
+    /** @return array<mixed>|false */
+    public function GetNetNodeList($search = [], $order = 'name,asc') {}
+
+    /** @return array<string, mixed>|false|null */
+    public function GetNode($id) {}
+
+    /** @return int|string|false|null */
+    public function GetNodeIDByMAC($mac) {}
+}
+
+class ConfigHelper
+{
+    /** @return mixed */
+    public static function getConfig($name, $default = null, $allow_empty_value = false) {}
+
+    /** @return bool|null */
+    public static function checkConfig($name, $default = false) {}
+}
+
+class Auth
+{
+    /** @return int|null */
+    public static function GetCurrentUser() {}
+}
+
+class AccessRights
+{
+    public const FIRST_FORBIDDEN_PERMISSION = 'backup_management_forbidden';
+
+    /** @return AccessRights */
+    public static function getInstance() {}
+
+    /** @return void */
+    public function insertPermission($permission, $existingpermname, $before = true) {}
+
+    /**
+     * @param array<int, string> $rights
+     * @return bool
+     */
+    public function checkRights($module, $rights, $global_allow = false) {}
+}
+
+class Permission
+{
+    public const MENU_ALL = 1;
+
+    public function __construct($name, $label, $allow_regexp = null, $deny_regexp = null, $allow_menu_items = null, $deny_menu_items = null) {}
+}
+
+class Smarty
+{
+    /** @return array<int, string>|string */
+    public function getTemplateDir($index = null) {}
+
+    /** @return Smarty */
+    public function setTemplateDir($template_dir) {}
+
+    /** @return Smarty */
+    public function registerClass($class_name, $class_impl) {}
+
+    /** @return mixed */
+    public function getTemplateVars($varname = null) {}
+
+    /** @return Smarty */
+    public function assign($tpl_var, $value = null) {}
+}
+
+/**
+ * @param mixed ...$args
+ */
+function trans(...$args): string {}
+
+/**
+ * @param mixed $timestamp
+ * @return string|null
+ */
+function lastonline_date($timestamp) {}
+
+class Session
+{
+    /** @return mixed */
+    public function get($variable, $tab = false) {}
+
+    /** @return void */
+    public function save($variable, $content, $tab = false) {}
+}
