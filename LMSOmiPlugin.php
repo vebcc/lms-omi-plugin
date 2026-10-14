@@ -18,6 +18,7 @@ class LMSOmiPlugin extends LMSPlugin
     public const PLUGIN_ALIAS = 'olt-manager';
     public const PLUGIN_VERSION = '3.0.0';
     public const PLUGIN_SOFTWARE_VERSION = self::PLUGIN_VERSION;
+    public const PLUGIN_DB_VERSION = '2026101400';
     public const PLUGIN_DESCRIPTION = 'Integracja z systemem OltManager (API v3, SSO)';
     public const PLUGIN_AUTHOR = 'Krzysztof Masłowski &lt;krzysztof@maslowski.it&gt;';
     public const PLUGIN_DOC_URL = 'https://docs.oltmanager.pl/books/oltmanager-dokumentacja/page/konfiguracja-integracji-lmsilms';
