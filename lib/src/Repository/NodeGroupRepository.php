@@ -16,7 +16,7 @@ class NodeGroupRepository
     }
 
     /**
-     * @return array<int, array<string, mixed>> grupy indeksowane po id (jak GetAllByKey w legacy)
+     * @return array<int, array<string, mixed>> grupy indeksowane po id (jak GetAllByKey)
      */
     public function findAll(): array
     {

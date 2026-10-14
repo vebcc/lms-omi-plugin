@@ -20,26 +20,21 @@ use Omi\Collection\TariffCollection;
 use Omi\Config\ConfigSource;
 use Omi\Config\OmiConfig;
 use Omi\Device\DescriptionToAddressConverter;
-use Omi\Device\DeviceDataBuilder;
-use Omi\Device\DeviceListProvider;
+use Omi\Device\ErrorDeviceList;
 use Omi\Http\CurlTransport;
 use Omi\Http\HttpTransport;
-use Omi\Legacy\LegacyApiDataGetter;
-use Omi\Legacy\LegacyOmiDataGetter;
 use Omi\Lms\Database;
 use Omi\Lms\LmsApi;
 use Omi\OltManager\OltManagerClient;
 use Omi\Pppoe\PppoeCredentialsFinder;
 use Omi\Proxy\OltManagerProxy;
 use Omi\Repository\CustomerAddressBook;
-use Omi\Repository\CustomerDirectory;
 use Omi\Repository\CustomerEmails;
 use Omi\Repository\GponZteRepository;
 use Omi\Repository\NetDevLinkedOwners;
 use Omi\Repository\NetDevLocationResolver;
 use Omi\Repository\NetDevRepository;
 use Omi\Repository\NodeAccessConfigurationRepository;
-use Omi\Repository\NodeCredentials;
 use Omi\Repository\NodeGroupRepository;
 use Omi\Repository\UserRepository;
 use Omi\Security\CsrfTokenManager;
@@ -89,11 +84,6 @@ final class ServiceContainer
         return $this->shared(OmiConfig::class, function (): OmiConfig {
             return new OmiConfig($this->configSource);
         });
-    }
-
-    public function lms(): LmsApi
-    {
-        return $this->lms;
     }
 
     public function logger(): Logger
@@ -146,7 +136,7 @@ final class ServiceContainer
     public function ssoRedirector(): SsoRedirector
     {
         return $this->shared(SsoRedirector::class, function (): SsoRedirector {
-            return new SsoRedirector($this->config(), $this->oltManagerClient(), $this->users(), $this->logger());
+            return new SsoRedirector($this->config(), $this->oltManagerClient(), $this->logger());
         });
     }
 
@@ -183,26 +173,9 @@ final class ServiceContainer
         });
     }
 
-    public function legacyApiDataGetter(): LegacyApiDataGetter
+    public function errorDeviceList(): ErrorDeviceList
     {
-        return new LegacyApiDataGetter($this->collections());
-    }
-
-    public function legacyOmiDataGetter(): LegacyOmiDataGetter
-    {
-        return new LegacyOmiDataGetter($this->config(), $this->deviceLists(), $this->pppoe(), $this->users(), $this->currentUserId());
-    }
-
-    public function deviceLists(): DeviceListProvider
-    {
-        return $this->shared(DeviceListProvider::class, function (): DeviceListProvider {
-            return new DeviceListProvider(
-                $this->lms,
-                $this->netDevRepository(),
-                new DeviceDataBuilder(new NodeCredentials($this->database), $this->customerDirectory(), $this->netDevLocationResolver()),
-                new DescriptionToAddressConverter()
-            );
-        });
+        return new ErrorDeviceList($this->lms, $this->netDevRepository(), new DescriptionToAddressConverter());
     }
 
     /**
@@ -231,13 +204,6 @@ final class ServiceContainer
     {
         return $this->shared(CustomerAddressBook::class, function (): CustomerAddressBook {
             return new CustomerAddressBook($this->database);
-        });
-    }
-
-    private function customerDirectory(): CustomerDirectory
-    {
-        return $this->shared(CustomerDirectory::class, function (): CustomerDirectory {
-            return new CustomerDirectory($this->database);
         });
     }
 

@@ -50,14 +50,4 @@ final class FakeLms implements LmsApi
     {
         return $this->macs[$mac] ?? null;
     }
-
-    public function getNodeName(int $id): string
-    {
-        return (string) ($this->nodes[$id]['name'] ?? '');
-    }
-
-    public function getNetDevName(int $id): string
-    {
-        return 'netdev' . $id;
-    }
 }

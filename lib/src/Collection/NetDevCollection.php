@@ -30,7 +30,7 @@ final class NetDevCollection implements CollectionProvider, HasVolatileFields
     {
         $netDevs = $this->repository->findAll();
         foreach ($netDevs as $key => $netDev) {
-            $netDevs[$key]['locationAddress'] = $this->locationResolver->resolve($netDev)['locationAddress'];
+            $netDevs[$key]['locationAddress'] = $this->locationResolver->resolve($netDev);
         }
 
         return $netDevs;

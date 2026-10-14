@@ -8,7 +8,7 @@ use Omi\Support\Json;
 
 /**
  * Sumy kontrolne kolekcji. Suma elementu = md5(json_encode(element)) - tak samo jak
- * w legacy, więc sumy per-element (zapisywane przez OltManager) nie zmieniają się.
+ * w pluginie 2.x, więc sumy per-element zapisane wcześniej przez OltManager pozostają ważne.
  */
 final class Checksum
 {

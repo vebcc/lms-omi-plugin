@@ -5,40 +5,46 @@ declare(strict_types=1);
 namespace Omi\Device;
 
 use Omi\Lms\LmsApi;
+use Omi\Repository\NetDevRepository;
 
 /**
- * Wiersze listy "Urządzenia z błędami" z połączeń z błędnym adresem ONU.
+ * Wiersze listy "Urządzenia z błędami": komputery i urządzenia sieciowe z błędnie zapisanym
+ * adresem ONU w pierwszej linii opisu (np. "TU_1/2/3" bez numeru ONU).
  */
 final class ErrorDeviceList
 {
     private LmsApi $lms;
+    private NetDevRepository $netDevs;
+    private DescriptionToAddressConverter $converter;
 
-    public function __construct(LmsApi $lms)
+    public function __construct(LmsApi $lms, NetDevRepository $netDevs, DescriptionToAddressConverter $converter)
     {
         $this->lms = $lms;
+        $this->netDevs = $netDevs;
+        $this->converter = $converter;
     }
 
     /**
-     * @param list<array<string, mixed>> $connections wynik DeviceListProvider::connectionsWithError()
      * @return list<array<string, mixed>>
      */
-    public function build(array $connections): array
+    public function build(): array
     {
         $rows = [];
-        foreach ($connections as $connection) {
-            if (!empty($connection['devices'])) {
-                $rows[] = $this->row('device', $connection['devices'][0], 'node');
-            } elseif (!empty($connection['networkDevices'])) {
-                $rows[] = $this->row('networkDevice', $connection['networkDevices'][0], 'netdev');
-            } else {
-                $rows[] = [
-                    'type' => 'error',
-                    'lmsId' => null,
-                    'error' => 'libraryFailed',
-                    'address' => null,
-                    'name' => null,
-                    'link' => ['show' => '#', 'edit' => '#'],
-                ];
+
+        foreach ($this->lms->getNodeList() as $node) {
+            if (!is_array($node) || !isset($node['id'])) {
+                continue;
+            }
+            $row = $this->row('device', 'node', $node, $node['info'] ?? null);
+            if ($row !== null) {
+                $rows[] = $row;
+            }
+        }
+
+        foreach ($this->netDevs->findAll() as $netDev) {
+            $row = $this->row('networkDevice', 'netdev', $netDev, $netDev['description'] ?? null);
+            if ($row !== null) {
+                $rows[] = $row;
             }
         }
 
@@ -47,19 +53,22 @@ final class ErrorDeviceList
 
     /**
      * @param array<string, mixed> $object
-     * @return array<string, mixed>
+     * @return array<string, mixed>|null
      */
-    private function row(string $type, array $object, string $modulePrefix): array
+    private function row(string $type, string $modulePrefix, array $object, ?string $description): ?array
     {
-        $id = (int) $object['lmsId'];
-        $name = $modulePrefix === 'node' ? $this->lms->getNodeName($id) : $this->lms->getNetDevName($id);
+        $result = $this->converter->convert($description, true);
+        if ($result === null || !array_key_exists('error', $result)) {
+            return null;
+        }
+        $id = (int) $object['id'];
 
         return [
             'type' => $type,
             'lmsId' => $id,
-            'error' => $object['error']['error'] ?? null,
-            'address' => $object['error']['address'] ?? null,
-            'name' => $name,
+            'error' => $result['error'],
+            'address' => $result['address'] ?? null,
+            'name' => $object['name'] ?? null,
             'link' => [
                 'show' => '?m=' . $modulePrefix . 'info&id=' . $id,
                 'edit' => '?m=' . $modulePrefix . 'edit&id=' . $id,

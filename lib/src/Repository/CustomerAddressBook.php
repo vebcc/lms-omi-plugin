@@ -42,7 +42,7 @@ class CustomerAddressBook
     }
 
     /**
-     * Identyfikatory TERYT adresu w formacie "locationAddress" z legacy API
+     * Identyfikatory TERYT adresu w formacie "locationAddress" (jak w pluginie 2.x)
      * (cityIdent, streetIdent, location_house) albo [] gdy adres nie ma miejscowości TERYT.
      *
      * @return array<string, mixed>

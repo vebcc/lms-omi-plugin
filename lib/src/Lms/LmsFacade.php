@@ -54,16 +54,6 @@ final class LmsFacade implements LmsApi
         return $id ? (int) $id : null;
     }
 
-    public function getNodeName(int $id): string
-    {
-        return (string) $this->lms->GetNodeName($id);
-    }
-
-    public function getNetDevName(int $id): string
-    {
-        return (string) $this->lms->GetNetDevName($id);
-    }
-
     /**
      * @param mixed $value
      * @return array<mixed>

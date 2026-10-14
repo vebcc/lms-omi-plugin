@@ -17,7 +17,7 @@ interface CollectionProvider
     public function name(): string;
 
     /**
-     * Dane w kształcie legacy (tak jak zwracał je LMS / stary plugin): elementy bez sum
+     * Dane w kształcie zwracanym przez LMS: elementy bez sum
      * kontrolnych, z zachowaniem kluczy i ewentualnych skalarnych kluczy meta LMS
      * ("total", "order", ...).
      *

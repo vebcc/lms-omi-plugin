@@ -14,7 +14,7 @@ final class Json
 
     /**
      * Flagi kodowania na potrzeby sum kontrolnych - dla poprawnych danych wynik jest
-     * identyczny jak json_encode() bez flag (zgodność sum per-element z legacy).
+     * identyczny jak json_encode() bez flag (zgodność sum per-element z pluginem 2.x).
      */
     public const CHECKSUM_FLAGS = JSON_INVALID_UTF8_SUBSTITUTE | JSON_PARTIAL_OUTPUT_ON_ERROR;
 

@@ -81,12 +81,6 @@ class LMS
 
     /** @return int|string|false|null */
     public function GetNodeIDByMAC($mac) {}
-
-    /** @return string|null */
-    public function GetNodeName($id) {}
-
-    /** @return string|null */
-    public function GetNetDevName($id) {}
 }
 
 class ConfigHelper

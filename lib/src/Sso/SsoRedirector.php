@@ -15,9 +15,8 @@ use Omi\Support\Strings;
  *
  * 1. Auto-login wyłączony -> zwykły adres OltManagera.
  * 2. Auto-login włączony -> jednorazowy ticket SSO wystawiony server-side.
- * 3. OltManager bez endpointu SSO (404) -> stary sposób z tokenami w URL, tylko gdy
- *    omi.legacy_login_fallback = true.
- * 4. Każdy inny błąd -> zwykły adres + wpis w error_log (bez tokenów).
+ * 3. Każdy błąd (w tym 404 starego OltManagera bez SSO) -> zwykły adres + wpis w error_log
+ *    (bez tokenów).
  */
 class SsoRedirector
 {
@@ -25,14 +24,12 @@ class SsoRedirector
 
     private OmiConfig $config;
     private OltManagerClient $client;
-    private LegacyTokenProvider $legacyTokens;
     private Logger $logger;
 
-    public function __construct(OmiConfig $config, OltManagerClient $client, LegacyTokenProvider $legacyTokens, Logger $logger)
+    public function __construct(OmiConfig $config, OltManagerClient $client, Logger $logger)
     {
         $this->config = $config;
         $this->client = $client;
-        $this->legacyTokens = $legacyTokens;
         $this->logger = $logger;
     }
 
@@ -58,6 +55,7 @@ class SsoRedirector
         }
 
         $json = $result->json();
+        $errorCode = self::errorCode($json);
 
         if ($result->status() === 201 || $result->status() === 200) {
             $loginUrl = is_array($json) && isset($json['loginUrl']) && is_string($json['loginUrl']) ? $json['loginUrl'] : '';
@@ -69,40 +67,22 @@ class SsoRedirector
             return $plainUrl;
         }
 
-        if ($result->status() === 404 && self::errorCode($json) !== 'user_not_found') {
-            // stary OltManager bez endpointu SSO
-            return $this->legacyUrl($plainUrl, $user);
+        if ($result->status() === 404 && $errorCode !== 'user_not_found') {
+            $this->logger->error(
+                'SSO: OltManager does not support SSO (HTTP 404 on ' . OltManagerClient::SSO_TICKET_PATH
+                . '), automatic login skipped - update OltManager to a version with API v3 / SSO'
+            );
+
+            return $plainUrl;
         }
 
         $this->logger->error(sprintf(
             'SSO: ticket request rejected: HTTP %d%s',
             $result->status(),
-            self::errorCode($json) !== '' ? ' (' . self::errorCode($json) . ')' : ''
+            $errorCode !== '' ? ' (' . $errorCode . ')' : ''
         ));
 
         return $plainUrl;
-    }
-
-    private function legacyUrl(string $plainUrl, CurrentUser $user): string
-    {
-        if (!$this->config->legacyLoginFallback()) {
-            return $plainUrl;
-        }
-
-        $userToken = $this->legacyTokens->tokenForUser($user->id());
-        if ($userToken === null || $userToken === '') {
-            return $plainUrl;
-        }
-
-        return self::buildLegacyLoginUrl($plainUrl, $this->config->oltManagerToken(), $userToken);
-    }
-
-    public static function buildLegacyLoginUrl(string $url, string $apiToken, string $userToken): string
-    {
-        return Strings::appendQuery(
-            $url,
-            'x-auth-token=' . rawurlencode($apiToken) . '&x-auth-additional-token=' . rawurlencode($userToken)
-        );
     }
 
     public static function isSafeLoginUrl(string $loginUrl): bool

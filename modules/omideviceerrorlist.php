@@ -22,7 +22,7 @@ $layout['pagetitle'] = trans('Device with error list');
 
 $errorDevices = [];
 if ($omiConfig->providerType() === 'description') {
-    $errorDevices = (new \Omi\Device\ErrorDeviceList($omiServices->lms()))->build($omiServices->deviceLists()->connectionsWithError());
+    $errorDevices = $omiServices->errorDeviceList()->build();
 }
 
 $pagelimit = $omiConfig->deviceErrorListPageLimit();

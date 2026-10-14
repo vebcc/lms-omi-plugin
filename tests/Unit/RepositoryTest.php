@@ -32,7 +32,7 @@ final class RepositoryTest extends TestCase
         ];
     }
 
-    public function testAddressBookMatchesLegacySemantics(): void
+    public function testAddressBookMatchesLmsSemantics(): void
     {
         $book = new CustomerAddressBook(new FakeDatabase(['FROM customer_addresses ca' => self::addressRows()]), 3, 1);
 
@@ -92,21 +92,18 @@ final class RepositoryTest extends TestCase
 
         $resolved = $resolver->resolve($netDev);
 
-        self::assertSame(1, $resolved['ownerId']);
         self::assertSame(
             ['cityIdent' => 918123, 'streetIdent' => null, 'location_house' => '2A', 'longitude' => '1.5', 'latitude' => '2.5'],
-            $resolved['locationAddress']
+            $resolved
         );
 
-        // urządzenie z własnym adresem TERYT: wartości bez rzutowania (jak w legacy)
+        // urządzenie z własnym adresem TERYT: wartości bez rzutowania (jak w pluginie 2.x)
         $own = $resolver->resolve(['id' => '8', 'ownerid' => '2', 'street_ident' => '00001', 'city_ident' => '0918123', 'location_house' => '5', 'longitude' => null, 'latitude' => null]);
-        self::assertSame(['cityIdent' => '0918123', 'streetIdent' => '00001', 'location_house' => '5', 'longitude' => null, 'latitude' => null], $own['locationAddress']);
-        self::assertSame(2, $own['ownerId']);
+        self::assertSame(['cityIdent' => '0918123', 'streetIdent' => '00001', 'location_house' => '5', 'longitude' => null, 'latitude' => null], $own);
 
         // brak właściciela i podłączonych komputerów
         $orphan = $resolver->resolve(['id' => '7', 'ownerid' => null, 'street_ident' => '99999', 'city_ident' => null, 'location_house' => null, 'longitude' => null, 'latitude' => null]);
-        self::assertNull($orphan['ownerId']);
-        self::assertSame(['longitude' => null, 'latitude' => null], $orphan['locationAddress']);
+        self::assertSame(['longitude' => null, 'latitude' => null], $orphan);
     }
 
     public function testNodeAccessConfigurationRowShapeAndParameters(): void

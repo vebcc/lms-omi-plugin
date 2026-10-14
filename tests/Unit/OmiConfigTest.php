@@ -17,7 +17,6 @@ final class OmiConfigTest extends TestCase
 
         self::assertTrue($config->sslVerify());
         self::assertFalse($config->automaticLogin());
-        self::assertTrue($config->legacyLoginFallback());
         self::assertFalse($config->forceSync());
         self::assertFalse($config->deviceErrorListEnabled());
         self::assertFalse($config->returnCustomerEmail());
@@ -37,13 +36,11 @@ final class OmiConfigTest extends TestCase
             'omi.olt_manager_force_sync' => 'false',
             'omi.ssl_verify' => 'nie',
             'omi.olt_manager_automatic_login' => 'TAK',
-            'omi.legacy_login_fallback' => '0',
         ]));
 
         self::assertFalse($config->forceSync());
         self::assertFalse($config->sslVerify());
         self::assertTrue($config->automaticLogin());
-        self::assertFalse($config->legacyLoginFallback());
     }
 
     public function testBoolParserMatchesLmsCheckValue(): void

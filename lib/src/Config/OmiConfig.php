@@ -47,11 +47,6 @@ final class OmiConfig
             'default' => 'false',
             'description' => 'Automatyczne logowanie do OltManagera (SSO) z przycisków i menu',
         ],
-        'legacy_login_fallback' => [
-            'type' => self::TYPE_BOOL,
-            'default' => 'true',
-            'description' => 'Zgoda na stary sposób autologowania (tokeny w adresie URL) dla OltManagera bez obsługi SSO',
-        ],
         'olt_manager_open_in_new_tab' => [
             'type' => self::TYPE_BOOL,
             'default' => 'false',
@@ -144,11 +139,6 @@ final class OmiConfig
     public function automaticLogin(): bool
     {
         return $this->bool('olt_manager_automatic_login');
-    }
-
-    public function legacyLoginFallback(): bool
-    {
-        return $this->bool('legacy_login_fallback');
     }
 
     public function openInNewTab(): bool

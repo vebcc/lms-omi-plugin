@@ -6,7 +6,6 @@ namespace Omi\Tests\Unit;
 
 use Omi\Api\Action\PppoeCredentialsAction;
 use Omi\Api\ApiException;
-use Omi\Legacy\LegacyOmiDataGetter;
 use Omi\Pppoe\PppoeCredentialsFinder;
 use Omi\Tests\Support\FakeLms;
 use PHPUnit\Framework\TestCase;

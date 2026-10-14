@@ -9,7 +9,6 @@ use Omi\Config\OmiConfig;
 use Omi\Http\HttpResult;
 use Omi\OltManager\OltManagerClient;
 use Omi\Sso\CurrentUser;
-use Omi\Sso\LegacyTokenProvider;
 use Omi\Sso\SsoRedirector;
 use Omi\Support\Logger;
 use Omi\Tests\Support\FakeTransport;
@@ -33,12 +32,6 @@ final class SsoRedirectorTest extends TestCase
             'omi.olt_manager_token' => 'api tok&en',
         ]));
         $transport = new FakeTransport($result);
-        $tokens = new class () implements LegacyTokenProvider {
-            public function tokenForUser(int $userId): ?string
-            {
-                return $userId > 0 ? 'jan$abc+/=' : null;
-            }
-        };
         $test = $this;
         $logger = new class ($test) extends Logger {
             private SsoRedirectorTest $test;
@@ -55,7 +48,7 @@ final class SsoRedirectorTest extends TestCase
             }
         };
 
-        return new SsoRedirector($config, new OltManagerClient(self::BASE, 'api tok&en', $transport), $tokens, $logger);
+        return new SsoRedirector($config, new OltManagerClient(self::BASE, 'api tok&en', $transport), $logger);
     }
 
     public function log(string $message): void
@@ -109,24 +102,17 @@ final class SsoRedirectorTest extends TestCase
         self::assertSame(self::BASE . '/onu/1', $sso->redirectUrl('onu/1', self::user()));
     }
 
-    public function testOldOltManagerUsesLegacyFallbackWithEncodedTokens(): void
+    public function testOldOltManagerWithoutSsoGivesPlainRedirectAndUpdateHint(): void
     {
         $sso = $this->redirector(HttpResult::response(404, '<html>Not Found</html>'), ['omi.olt_manager_automatic_login' => 'true']);
 
-        self::assertSame(
-            self::BASE . '/onu/1?a=1&x-auth-token=api%20tok%26en&x-auth-additional-token=jan%24abc%2B%2F%3D',
-            $sso->redirectUrl('onu/1?a=1', self::user())
-        );
-    }
+        $url = $sso->redirectUrl('onu/1?a=1', self::user());
 
-    public function testLegacyFallbackCanBeDisabled(): void
-    {
-        $sso = $this->redirector(HttpResult::response(404, ''), [
-            'omi.olt_manager_automatic_login' => 'true',
-            'omi.legacy_login_fallback' => 'false',
-        ]);
-
-        self::assertSame(self::BASE . '/onu/1', $sso->redirectUrl('onu/1', self::user()));
+        self::assertSame(self::BASE . '/onu/1?a=1', $url);
+        self::assertStringNotContainsString('x-auth', $url);
+        $log = implode("\n", $this->logged);
+        self::assertStringContainsString('update OltManager', $log);
+        self::assertStringNotContainsString('api tok', $log);
     }
 
     public function testUserNotFoundIsNotTreatedAsOldOltManager(): void

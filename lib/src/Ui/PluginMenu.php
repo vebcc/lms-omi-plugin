@@ -32,7 +32,7 @@ final class PluginMenu
             ],
             'omi_api_user' => [
                 'label' => 'OltManager - LMS API full access',
-                'regexp' => '^(omiapi|omidatagetter|omiapidatagetter)$',
+                'regexp' => '^omiapi$',
                 'menu' => null,
             ],
         ];

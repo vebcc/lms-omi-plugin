@@ -12,7 +12,7 @@ use Omi\Lms\Database;
  * Wersja przenośna (MySQL + PostgreSQL): agregaty liczbowe liczy SQL, a listy
  * (MAC-i, grup, taryf) są składane w PHP z osobnych, posortowanych zapytań - zamiast
  * GROUP_CONCAT ... SEPARATOR, którego PostgreSQL nie zna. Pola i ich kolejność są takie
- * same jak w legacy.
+ * same jak w pluginie 2.x.
  */
 class NodeAccessConfigurationRepository
 {

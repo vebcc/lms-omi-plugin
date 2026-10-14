@@ -6,8 +6,7 @@ namespace Omi\Collection;
 
 /**
  * Kolekcja z polami zmieniającymi się bez zmiany danych (np. czas względny "x temu").
- * API v3 je pomija, żeby suma kontrolna zmieniała się tylko przy realnej zmianie danych;
- * legacy zwraca je jak dawniej.
+ * API v3 je pomija, żeby suma kontrolna zmieniała się tylko przy realnej zmianie danych.
  */
 interface HasVolatileFields
 {

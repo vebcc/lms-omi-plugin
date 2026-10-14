@@ -9,12 +9,10 @@ use Omi\Config\OmiConfig;
 use Omi\Http\HttpResult;
 use Omi\OltManager\OltManagerClient;
 use Omi\Proxy\OltManagerProxy;
-use Omi\Repository\UserRepository;
 use Omi\Security\ArraySessionStore;
 use Omi\Security\CsrfTokenManager;
 use Omi\Sso\SsoRedirector;
 use Omi\Support\Logger;
-use Omi\Tests\Support\FakeDatabase;
 use Omi\Tests\Support\FakeTransport;
 use PHPUnit\Framework\TestCase;
 
@@ -47,7 +45,7 @@ final class CsrfAndProxyTest extends TestCase
         ]));
         $transport = new FakeTransport($upstream);
         $client = new OltManagerClient($config->oltManagerUrl(), $config->oltManagerToken(), $transport);
-        $sso = new SsoRedirector($config, $client, new UserRepository(new FakeDatabase()), new Logger());
+        $sso = new SsoRedirector($config, $client, new Logger());
 
         return new OltManagerProxy($config, $client, $sso);
     }

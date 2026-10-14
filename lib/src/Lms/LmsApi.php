@@ -26,8 +26,4 @@ interface LmsApi
     public function getNode(int $id): ?array;
 
     public function getNodeIdByMac(string $mac): ?int;
-
-    public function getNodeName(int $id): string;
-
-    public function getNetDevName(int $id): string;
 }
