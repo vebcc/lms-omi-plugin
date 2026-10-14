@@ -1,0 +1,38 @@
+{
+    "name": "vebcc/lms-omi-plugin",
+    "description": "LMS plugin - integracja z systemem OltManager (API v3, SSO)",
+    "type": "lms-plugin",
+    "license": "GPL-2.0-or-later",
+    "authors": [
+        {
+            "name": "Krzysztof Masłowski",
+            "email": "krzysztof@maslowski.it"
+        }
+    ],
+    "require": {
+        "php": ">=7.4",
+        "ext-curl": "*",
+        "ext-json": "*"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9.6",
+        "phpstan/phpstan": "^1.12 || ^2.0",
+        "friendsofphp/php-cs-fixer": "^3.0"
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Omi\\": "lib/src/",
+            "Omi\\Tests\\": "tests/"
+        }
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "scripts": {
+        "test": "phpunit",
+        "phpstan": "phpstan analyse --memory-limit=1G",
+        "cs": "php-cs-fixer fix --dry-run --diff",
+        "cs-fix": "php-cs-fixer fix",
+        "install-sql": "php bin/generate-install-sql.php"
+    }
+}
