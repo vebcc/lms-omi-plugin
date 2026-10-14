@@ -2,63 +2,33 @@
 
 class OmiTicketHandler
 {
-    public function ticketViewBeforeDisplay(array $hook_data)
+    use \Omi\Handler\PanelHandlerTrait;
+
+    /**
+     * @param array<string, mixed> $hook_data
+     * @return array<string, mixed>
+     */
+    public function ticketViewBeforeDisplay(array $hook_data): array
     {
-        $SMARTY = $hook_data['smarty'];
-
-        if(!isset($hook_data['ticket'])){
+        if (!isset($hook_data['ticket'])) {
             return $hook_data;
         }
 
-        $customerId = $hook_data['ticket']['customerid'];
-        $nodeId = $hook_data['ticket']['nodeid'];
-
-        if(!$customerId && !$nodeId){
+        $customerId = (int) ($hook_data['ticket']['customerid'] ?? 0);
+        $nodeId = (int) ($hook_data['ticket']['nodeid'] ?? 0);
+        if ($customerId <= 0 && $nodeId <= 0) {
             return $hook_data;
         }
 
-        $params = '';
-        if($customerId){
-            $params = 'ownerLmsId=' . $customerId;
+        $params = [];
+        if ($customerId > 0) {
+            $params[] = 'ownerLmsId=' . $customerId;
         }
-        if($nodeId){
-            if($params){
-                $params .= '&';
-            }
-            $params .= 'deviceLmsId=' . $nodeId;
+        if ($nodeId > 0) {
+            $params[] = 'deviceLmsId=' . $nodeId;
         }
 
-        $isOpenInNewTabEnabled = ConfigHelper::getConfig('omi.olt_manager_open_in_new_tab', false);
-        if($isOpenInNewTabEnabled === "true" || $isOpenInNewTabEnabled === true || $isOpenInNewTabEnabled == 1){
-            $isOpenInNewTabEnabled = true;
-        }else{
-            $isOpenInNewTabEnabled = false;
-        }
-
-        $isAutomaticLoginEnabled = ConfigHelper::getConfig('omi.olt_manager_automatic_login', false);
-        if($isAutomaticLoginEnabled === "true" || $isAutomaticLoginEnabled === true || $isAutomaticLoginEnabled == 1){
-            $isAutomaticLoginEnabled = true;
-        }else{
-            $isAutomaticLoginEnabled = false;
-        }
-
-        $onuLinkParams = ConfigHelper::getConfig('omi.olt_manager_onu_link_params', '?enabled=1');
-
-        if(strpos($onuLinkParams, '?') !== false){
-            $onuLinkParams .= '&' . $params;
-        }else{
-            $onuLinkParams .= '?' . $params;
-        }
-
-        $proxyUrl = '?m=omiapiproxy';
-
-        $SMARTY->assign('omiproxyurl', $proxyUrl);
-        $SMARTY->assign('omioltmanagerurl', ConfigHelper::getConfig('omi.olt_manager_url'));
-        $SMARTY->assign('omioltmanageronulinkparams', $onuLinkParams);
-        $SMARTY->assign('omioltmanagersection', 'ticket');
-        $SMARTY->assign('omioltmanagersectiontitle', 'OltManager ticket ONU list');
-        $SMARTY->assign('omioltmanagernewtab', $isOpenInNewTabEnabled);
-        $SMARTY->assign('omioltmanagerautoligin', $isAutomaticLoginEnabled);
+        $this->assignOnuPanel($hook_data['smarty'], 'ticket', 'OltManager ticket ONU list', implode('&', $params));
 
         return $hook_data;
     }

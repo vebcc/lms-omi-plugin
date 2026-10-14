@@ -1,29 +1,17 @@
 <?php
 
-$omi = LMSOmiPlugin::getOmiInstance();
+/**
+ * Przekierowanie do OltManagera: ?m=omiredirect[&url=<ścieżka względna>]
+ * Przy włączonym omi.olt_manager_automatic_login loguje użytkownika przez SSO.
+ */
 
-$layout['pagetitle'] = 'OMI - API';
+$omiServices = LMSOmiPlugin::services();
+$omiUrl = isset($_GET['url']) && is_string($_GET['url']) ? $_GET['url'] : '';
 
-$params = $_GET;
-
-$url = isset($params['url']) ? $params['url'] : '';
-
-$outParams = '';
-
-$omurl = ConfigHelper::getConfig('omi.olt_manager_url', 'https://oltmanager.pl');
-
-$isAutomaticLoginEnabled = ConfigHelper::getConfig('omi.olt_manager_automatic_login', false);
-if($isAutomaticLoginEnabled === "true"){
-    $isAutomaticLoginEnabled = true;
-}else{
-    $isAutomaticLoginEnabled = false;
+if ($omiServices->config()->oltManagerUrl() === '') {
+    \Omi\Proxy\ProxyResponse::error(503, 'OltManager not configured (omi.olt_manager_url)')->send();
+    die;
 }
 
-if($isAutomaticLoginEnabled){
-    $outParams.= '?x-auth-token='.ConfigHelper::getConfig('omi.olt_manager_token');
-    $outParams.= '&x-auth-additional-token='.$omi->getMyToken();
-
-}
-
-header("Location: " . $omurl . '/' . $url . $outParams);
+\Omi\Proxy\ProxyResponse::redirect($omiServices->ssoRedirector()->redirectUrl($omiUrl, $omiServices->currentUser()))->send();
 die;
