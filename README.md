@@ -4,8 +4,7 @@ Wtyczka do systemu LMS realizująca integrację z systemem OltManager.
 
 - udostępnia OltManagerowi dane z LMS (klienci, komputery, urządzenia sieciowe, węzły, taryfy,
   konfiguracja dostępu, grupy komputerów, ONU z pluginu GPON ZTE, dane PPPoE) przez
-  **API v3** (`?m=omiapi`) oraz - dla starszych wersji OltManagera - przez dotychczasowe moduły
-  `omidatagetter` / `omiapidatagetter`,
+  **API v3** (`?m=omiapi`),
 - dodaje do kart klienta, komputera, urządzenia sieciowego i zgłoszenia panel z listą ONU
   (adres, MAC, serial, model, status, sygnał) pobieraną z OltManagera przez serwer LMS,
 - pozwala przejść jednym kliknięciem do OltManagera, z automatycznym logowaniem (SSO).
@@ -17,8 +16,11 @@ uruchomieniu należy poczekać na pierwszą synchronizację - do tego czasu list
 
 - LMS (lmsgit lub LMS+) na **MySQL/MariaDB albo PostgreSQL**,
 - PHP **7.4 - 8.5** z rozszerzeniem `curl`,
-- OltManager z włączoną integracją LMS (LMSv2). Pełne wykorzystanie API v3 i SSO wymaga
-  OltManagera obsługującego API v3 - starsze wersje działają przez moduły legacy.
+- OltManager z włączoną integracją LMS (LMSv2) **w wersji obsługującej API v3 i SSO**.
+
+> **Uwaga:** plugin 3.x działa wyłącznie z OltManagerem obsługującym API v3 / SSO - nie zawiera
+> już starych modułów `omidatagetter` / `omiapidatagetter`. Jeśli Twój OltManager nie obsługuje
+> jeszcze API v3, zostań przy pluginie **2.x** do czasu aktualizacji OltManagera.
 
 ## Instalacja
 
@@ -47,9 +49,9 @@ Jeśli wszystko przebiegło pomyślnie, w menu pojawi się zakładka **OltManage
 
 ### Aktualizacja z wersji 2.x
 
-- Wystarczy podmienić katalog pluginu (i przebudować autoloader LMS-a). Moduły `omidatagetter` i
-  `omiapidatagetter` działają dalej z tym samym formatem odpowiedzi, więc stary OltManager nie wymaga
-  zmian.
+- Najpierw zaktualizuj OltManager do wersji z API v3 / SSO - plugin 3.x nie obsługuje starszych
+  OltManagerów (stare moduły `omidatagetter` / `omiapidatagetter` zostały usunięte).
+- Podmień katalog pluginu (i przebuduj autoloader LMS-a).
 - Ustawienia zostaną dopisane automatycznie (tylko brakujące).
 - Zmiany zachowania:
   - lista **Urządzenia z błędami** jest domyślnie **wyłączona** (`omi.device_error_list_enabled`),
@@ -58,8 +60,8 @@ Jeśli wszystko przebiegło pomyślnie, w menu pojawi się zakładka **OltManage
   - proxy `?m=omiapiproxy` przyjmuje tylko zapytania GET i ścieżki względne; akcje na ONU (np. restart)
     idą przez nowy moduł `?m=omiapiaction` (POST + token CSRF) i wymagają uprawnienia `omi_full_access`,
   - uprawnienia zostały poprawione (patrz niżej) - warto sprawdzić przypisania użytkowników,
-  - przy automatycznym logowaniu tokeny nie trafiają już do adresu URL (SSO), chyba że OltManager
-    nie obsługuje SSO i włączony jest tryb zgodności `omi.legacy_login_fallback`,
+  - automatyczne logowanie działa wyłącznie przez SSO - tokeny nie trafiają już do adresu URL,
+  - uprawnienie `omi_api_user` obejmuje tylko moduł `omiapi`,
   - zapytanie o konfigurację dostępu (taryfy komputerów) działa również na PostgreSQL.
 - Po przejściu OltManagera na API v3 wykona on jednorazowo pełną synchronizację (inne sumy
   kontrolne kolekcji) - to normalne.
@@ -69,7 +71,6 @@ Jeśli wszystko przebiegło pomyślnie, w menu pojawi się zakładka **OltManage
 | moduł | opis | uprawnienie |
 |---|---|---|
 | `omiapi` | API v3 dla OltManagera ([docs/API_V3.md](docs/API_V3.md)) | `omi_api_user` |
-| `omidatagetter`, `omiapidatagetter` | API legacy (przestarzałe, dla OltManagera bez API v3) | `omi_api_user` |
 | `omiredirect` | przejście do OltManagera (z SSO) - menu *OltManager* | `omi_read_only` |
 | `omiapiproxy` | odczyt z API OltManagera dla paneli ONU (tylko GET) | `omi_read_only` |
 | `omiapiaction` | akcje na ONU (POST + CSRF) | `omi_full_access` |
@@ -90,7 +91,6 @@ nieistniejący). Włączamy go ustawieniem `omi.device_error_list_enabled = true
 | `olt_manager_ip` | *(puste)* | Opcjonalny bezpośredni adres IP OltManagera (np. `192.168.5.55`), gdy DNS wskazuje adres niedostępny z serwera LMS. Połączenie idzie po IP z zachowaniem nazwy hosta (SNI, certyfikat). |
 | `ssl_verify` | `true` | Weryfikacja certyfikatu TLS OltManagera. |
 | `olt_manager_automatic_login` | `false` | Automatyczne logowanie do OltManagera (SSO) przy przejściu z LMS. W OltManagerze musi być włączone ustawienie `allow_automatic_login_via_integration_user`. |
-| `legacy_login_fallback` | `true` | Tryb zgodności dla OltManagera bez SSO: przy włączonym autologowaniu, gdy OltManager nie zna endpointu SSO, tokeny są dołączane do adresu URL (stary sposób). Dotyczy też wydawania starych tokenów przez `omidatagetter` (`getUserTokens`, `getMyToken`). Po aktualizacji OltManagera zalecane `false`. |
 | `olt_manager_open_in_new_tab` | `false` | Otwieranie OltManagera w nowej karcie. |
 | `olt_manager_force_sync` | `false` | Po zapisaniu klienta / komputera / zobowiązania LMS prosi OltManager o natychmiastową synchronizację. |
 | `olt_manager_onu_link_params` | `?enabled=1` | Dodatkowe parametry filtrowania listy ONU w panelach. |
@@ -105,7 +105,7 @@ nieistniejący). Włączamy go ustawieniem `omi.device_error_list_enabled = true
 
 ## Uprawnienia
 
-- `omi_api_user` - konto techniczne OltManagera: moduły `omiapi`, `omidatagetter`, `omiapidatagetter`.
+- `omi_api_user` - konto techniczne OltManagera: wyłącznie moduł `omiapi`.
   Użytkownik z wyłącznie tym uprawnieniem nie ma dostępu do interfejsu LMS (np. danych typu PESEL).
 - `omi_read_only` - użytkownicy: przejście do OltManagera (`omiredirect`) i podgląd list ONU
   (`omiapiproxy`), bez wykonywania akcji na ONU.
@@ -122,29 +122,20 @@ Pełny opis: [docs/API_V3.md](docs/API_V3.md). W skrócie:
   `{"apiVersion": 3, "error": {"code": "...", "message": "..."}}` z kodem HTTP 4xx/5xx,
 - akcje: `info`, `customers`, `nodes`, `netdevices`, `netnodes`, `tariffs`,
   `nodeAccessConfigurations`, `nodeGroups`, `gponZteOnus`, `pppoeCredentials`,
-- kolekcje zwracają `{"checksum": "...", "items": [...]}`; z `checksumOnly=1` - samą sumę kontrolną.
+- kolekcje zwracają `{"checksum": "...", "notModified": false, "items": [...]}`; z parametrem
+  `ifChecksum=<md5>` równym bieżącej sumie - `{"checksum": "...", "notModified": true}` bez `items`
+  (pobranie warunkowe: kolekcja jest budowana raz, a niezmienione dane nie są przesyłane).
 
 Przykłady:
 
 ```
 /?m=omiapi&action=info
-/?m=omiapi&action=customers&checksumOnly=1
+/?m=omiapi&action=customers&ifChecksum=0cc175b9c0f1b6a831c399e269772661
 /?m=omiapi&action=pppoeCredentials&mac=78:31:FF:27:FF:9A&upMacs=2&downMacs=2
 ```
 
 Ostatni przykład szuka danych PPPoE dla MAC `78:31:FF:27:FF:9A`, a jeśli nie znajdzie - kolejno dla
 `…:9B`, `…:9C`, `…:99`, `…:98`.
-
-### API legacy (przestarzałe)
-
-`?m=omidatagetter&type=...` (`getNetworkDeviceConnections`, `getNetworkDeviceConnectionsWithError`,
-`getMyToken`, `getMyLogin`, `getUserTokens`, `getPPPoECredentials`, `getDevices`,
-`getNetworkDevices`) oraz `?m=omiapidatagetter&type=...` (`getCustomerList`, `getCustomerChecksum`,
-`getNodeCollection`, `getNodeChecksum`, `getNetDevCollection`, `getNetDevChecksum`,
-`getNetNodeCollection`, `getNetNodeChecksum`, `getTariffs`, `getTariffsChecksum`,
-`getNodeAccessConfigurationCollection(Checksum)`, `getNodeGroupCollection(Checksum)`,
-`getGponZtePluginOnus(Checksum)`) działają jak w wersji 2.x i są przeznaczone wyłącznie dla
-OltManagerów bez API v3. Zostaną usunięte w przyszłej wersji.
 
 ## Automatyczne logowanie (SSO)
 
@@ -158,9 +149,9 @@ przechodzi przez LMS (`?m=omiredirect` lub proxy w trybie przekierowania):
 3. użytkownik OltManagera jest dopasowywany po loginie LMS (pole *additional username*, a w drugiej
    kolejności login OltManagera).
 
-Jeśli OltManager nie obsługuje jeszcze SSO, a `omi.legacy_login_fallback = true`, używany jest stary
-sposób (tokeny w adresie URL). Każdy inny błąd kończy się zwykłym przekierowaniem bez logowania i
-wpisem w logu błędów PHP (bez tokenów).
+Jeśli OltManager nie obsługuje SSO (stara wersja), użytkownik jest przekierowany bez logowania, a w
+logu błędów PHP pojawia się wpis z sugestią aktualizacji OltManagera. Każdy inny błąd również kończy
+się zwykłym przekierowaniem bez logowania i wpisem w logu (bez tokenów).
 
 ## Rozwój
 
