@@ -7,6 +7,7 @@ namespace Omi\Api\Action;
 use Omi\Api\Action;
 use Omi\Collection\CollectionProvider;
 use Omi\Collection\CollectionSnapshot;
+use Omi\Collection\HasVolatileFields;
 
 /**
  * Akcja kolekcji: {checksum, items} albo samo {checksum} przy checksumOnly=1.
@@ -30,13 +31,34 @@ final class CollectionAction implements Action
 
     public function handle(array $params)
     {
-        $snapshot = CollectionSnapshot::fromRaw($this->provider->fetchRaw());
+        $snapshot = CollectionSnapshot::fromRaw($this->withoutVolatileFields($this->provider->fetchRaw()));
 
         if (self::isChecksumOnly($params)) {
             return ['checksum' => $snapshot->checksum()];
         }
 
         return ['checksum' => $snapshot->checksum(), 'items' => $snapshot->items()];
+    }
+
+    /**
+     * @param array<mixed> $raw
+     *
+     * @return array<mixed>
+     */
+    private function withoutVolatileFields(array $raw): array
+    {
+        if (!$this->provider instanceof HasVolatileFields) {
+            return $raw;
+        }
+
+        $fields = array_flip($this->provider->volatileFields());
+        foreach ($raw as $key => $item) {
+            if (is_array($item)) {
+                $raw[$key] = array_diff_key($item, $fields);
+            }
+        }
+
+        return $raw;
     }
 
     /**

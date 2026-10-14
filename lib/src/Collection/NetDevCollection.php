@@ -10,7 +10,7 @@ use Omi\Repository\NetDevRepository;
 /**
  * Urządzenia sieciowe + "locationAddress" (adres TERYT urządzenia albo właściciela).
  */
-final class NetDevCollection implements CollectionProvider
+final class NetDevCollection implements CollectionProvider, HasVolatileFields
 {
     private NetDevRepository $repository;
     private NetDevLocationResolver $locationResolver;
@@ -34,5 +34,10 @@ final class NetDevCollection implements CollectionProvider
         }
 
         return $netDevs;
+    }
+
+    public function volatileFields(): array
+    {
+        return ['lastonlinedate'];
     }
 }

@@ -8,6 +8,7 @@ use Omi\Api\Action\CollectionAction;
 use Omi\Collection\Checksum;
 use Omi\Collection\CollectionProvider;
 use Omi\Collection\CollectionSnapshot;
+use Omi\Collection\HasVolatileFields;
 use PHPUnit\Framework\TestCase;
 
 final class ChecksumTest extends TestCase
@@ -89,5 +90,41 @@ final class ChecksumTest extends TestCase
     public function testInvalidUtf8DoesNotBreakChecksum(): void
     {
         self::assertNotSame(md5(''), Checksum::of(['name' => "\xB1\xEA"]));
+    }
+
+    public function testVolatileFieldsDoNotAffectV3Checksum(): void
+    {
+        $makeProvider = static function (string $lastOnline): CollectionProvider {
+            return new class ($lastOnline) implements CollectionProvider, HasVolatileFields {
+                private string $lastOnline;
+
+                public function __construct(string $lastOnline)
+                {
+                    $this->lastOnline = $lastOnline;
+                }
+
+                public function name(): string
+                {
+                    return 'netdevices';
+                }
+
+                public function fetchRaw(): array
+                {
+                    return [['id' => '1', 'lastonline' => '100', 'lastonlinedate' => $this->lastOnline]];
+                }
+
+                public function volatileFields(): array
+                {
+                    return ['lastonlinedate'];
+                }
+            };
+        };
+
+        $first = (new CollectionAction($makeProvider('5 min temu')))->handle([]);
+        $second = (new CollectionAction($makeProvider('6 min temu')))->handle([]);
+
+        self::assertSame($first['checksum'], $second['checksum']);
+        self::assertArrayNotHasKey('lastonlinedate', $first['items'][0]);
+        self::assertSame('100', $first['items'][0]['lastonline']);
     }
 }
