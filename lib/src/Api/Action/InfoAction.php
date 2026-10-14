@@ -40,6 +40,7 @@ final class InfoAction implements Action
             'actions' => $actions,
             'features' => [
                 'sso' => true,
+                'conditionalFetch' => true,
                 'customerEmail' => $this->config->returnCustomerEmail(),
             ],
         ];

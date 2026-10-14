@@ -10,10 +10,9 @@ use Omi\Collection\CollectionSnapshot;
 use Omi\Collection\HasVolatileFields;
 
 /**
- * Akcja kolekcji: {checksum, items} albo samo {checksum} przy checksumOnly=1.
- *
- * Suma kolekcji obejmuje sumy per-element, więc checksumOnly liczy to samo co pełne
- * pobranie - oszczędza transfer i serializację odpowiedzi.
+ * Akcja kolekcji z warunkowym pobraniem (docs/API_V3.md, sekcja 3):
+ * kolekcja jest budowana raz; gdy ifChecksum = bieżąca suma -> {checksum, notModified: true},
+ * w przeciwnym razie -> {checksum, notModified: false, items}.
  */
 final class CollectionAction implements Action
 {
@@ -33,11 +32,13 @@ final class CollectionAction implements Action
     {
         $snapshot = CollectionSnapshot::fromRaw($this->withoutVolatileFields($this->provider->fetchRaw()));
 
-        if (self::isChecksumOnly($params)) {
-            return ['checksum' => $snapshot->checksum()];
+        $checksum = $snapshot->checksum();
+
+        if (self::ifChecksum($params) === $checksum) {
+            return ['checksum' => $checksum, 'notModified' => true];
         }
 
-        return ['checksum' => $snapshot->checksum(), 'items' => $snapshot->items()];
+        return ['checksum' => $checksum, 'notModified' => false, 'items' => $snapshot->items()];
     }
 
     /**
@@ -62,12 +63,18 @@ final class CollectionAction implements Action
     }
 
     /**
+     * Suma kontrolna posiadana przez klienta (md5, małe litery) albo null.
+     *
      * @param array<string, mixed> $params
      */
-    private static function isChecksumOnly(array $params): bool
+    private static function ifChecksum(array $params): ?string
     {
-        $value = $params['checksumOnly'] ?? null;
+        $value = $params['ifChecksum'] ?? null;
+        if (!is_string($value)) {
+            return null;
+        }
+        $value = strtolower(trim($value));
 
-        return is_string($value) && in_array(strtolower($value), ['1', 'true', 'yes'], true);
+        return preg_match('/^[0-9a-f]{32}$/', $value) === 1 ? $value : null;
     }
 }

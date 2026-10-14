@@ -6,7 +6,7 @@ namespace Omi\Collection;
 
 /**
  * Kolekcja w formacie API v3: lista elementów z sumami per-element + suma całości.
- * Pełne pobranie i checksumOnly=1 korzystają z tej samej funkcji, więc sumy są identyczne.
+ * Suma jest liczona zawsze tą samą funkcją - niezależnie od tego, czy odpowiedź zawiera items.
  */
 final class CollectionSnapshot
 {

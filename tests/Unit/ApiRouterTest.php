@@ -120,6 +120,6 @@ final class ApiRouterTest extends TestCase
         self::assertSame('3.0.0', $info['pluginVersion']);
         self::assertSame(ApiResponse::API_VERSION, $info['apiVersion']);
         self::assertSame(['info', 'customers', 'nodes'], $info['actions']);
-        self::assertSame(['sso' => true, 'customerEmail' => true], $info['features']);
+        self::assertSame(['sso' => true, 'conditionalFetch' => true, 'customerEmail' => true], $info['features']);
     }
 }

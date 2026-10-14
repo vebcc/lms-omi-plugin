@@ -27,7 +27,7 @@ final class ChecksumTest extends TestCase
         ];
     }
 
-    public function testItemChecksumIsLegacyCompatible(): void
+    public function testItemChecksumIsCompatibleWithPlugin2x(): void
     {
         $item = ['id' => '1', 'name' => 'Zażółć', 'url' => 'a/b'];
 
@@ -45,7 +45,7 @@ final class ChecksumTest extends TestCase
         self::assertSame(md5((string) json_encode($items)), $snapshot->checksum());
     }
 
-    public function testChecksumOnlyEqualsFullFetchChecksum(): void
+    public function testConditionalFetch(): void
     {
         $provider = new class (self::lmsList()) implements CollectionProvider {
             /** @var array<mixed> */
@@ -72,11 +72,19 @@ final class ChecksumTest extends TestCase
         $action = new CollectionAction($provider);
 
         $full = $action->handle([]);
-        $checksumOnly = $action->handle(['checksumOnly' => '1']);
-
-        self::assertSame(['checksum'], array_keys($checksumOnly));
-        self::assertSame($full['checksum'], $checksumOnly['checksum']);
+        self::assertFalse($full['notModified']);
         self::assertCount(2, $full['items']);
+        self::assertSame(md5((string) json_encode($full['items'])), $full['checksum']);
+
+        // ta sama suma -> bez items
+        $same = $action->handle(['ifChecksum' => strtoupper($full['checksum'])]);
+        self::assertSame(['checksum' => $full['checksum'], 'notModified' => true], $same);
+
+        // inna / niepoprawna suma -> pełna kolekcja, ta sama suma co bez parametru
+        foreach ([md5('other'), 'garbage', ''] as $ifChecksum) {
+            $changed = $action->handle(['ifChecksum' => $ifChecksum]);
+            self::assertSame($full, $changed);
+        }
     }
 
     public function testEmptyCollectionIsValid(): void
